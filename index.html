@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="A comprehensive career fair tracking system for managing companies, contacts, job applications, follow-ups, and interviews.">
+    <title>Career Fair Tracking System</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Career Fair Tracking System</h1>
+            <p>Northeastern University - Talent Connect 2025</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="switchTab('dashboard')">📊 Dashboard</button>
+            <button class="tab" onclick="switchTab('companies')">🏢 Companies</button>
+            <button class="tab" onclick="switchTab('contacts')">👥 Contacts</button>
+            <button class="tab" onclick="switchTab('jobs')">💼 Jobs</button>
+            <button class="tab" onclick="switchTab('followup')">📅 Follow-Up</button>
+            <button class="tab" onclick="switchTab('interviews')">🎤 Interviews</button>
+            <button class="tab" onclick="switchTab('templates')">📝 Templates</button>
+        </div>
+        
+        <!-- Dashboard Tab -->
+        <div id="dashboard" class="tab-content active">
+            <h2>Quick Overview</h2>
+            <div class="dashboard">
+                <div class="stat-card">
+                    <h3>Companies Contacted</h3>
+                    <div class="number" id="companiesCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Applications Sent</h3>
+                    <div class="number" id="applicationsCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Follow-ups Pending</h3>
+                    <div class="number" id="followupsCount">0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Interviews Scheduled</h3>
+                    <div class="number" id="interviewsCount">0</div>
+                </div>
+            </div>
+            
+            <div class="priority-section">
+                <h3>🔥 Top Priority Companies</h3>
+                <div id="priorityList">
+                    <div class="empty-state">
+                        <p>No companies added yet. Start by adding companies in the Companies tab!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="timeline-section">
+                <h3>📅 Upcoming Deadlines</h3>
+                <div id="deadlinesList">
+                    <div class="empty-state">
+                        <p>No upcoming deadlines. Add jobs with application deadlines to see them here.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Companies Tab -->
+        <div id="companies" class="tab-content">
+            <h2>Company Tracker</h2>
+            <div class="form-section">
+                <h3>Add New Company</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Company Name*</label>
+                        <input type="text" id="companyName" placeholder="e.g., Google">
+                    </div>
+                    <div class="form-group">
+                        <label>Industry</label>
+                        <select id="companyIndustry">
+                            <option value="">Select Industry</option>
+                            <option value="Technology">Technology</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Healthcare">Healthcare</option>
+                            <option value="Consulting">Consulting</option>
+                            <option value="Retail">Retail</option>
+                            <option value="Manufacturing">Manufacturing</option>
+                            <option value="Education">Education</option>
+                            <option value="Non-profit">Non-profit</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Interest Level (1-5)</label>
+                        <select id="companyInterest">
+                            <option value="5">5 - Extremely Interested</option>
+                            <option value="4">4 - Very Interested</option>
+                            <option value="3">3 - Interested</option>
+                            <option value="2">2 - Somewhat Interested</option>
+                            <option value="1">1 - Low Interest</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Booth Number/Session Time</label>
+                        <input type="text" id="companyBooth" placeholder="e.g., Booth 42 or 2:00 PM Virtual">
+                    </div>
+                    <div class="form-group">
+                        <label>Recruiter Name</label>
+                        <input type="text" id="companyRecruiter" placeholder="e.g., Jane Smith">
+                    </div>
+                    <div class="form-group">
+                        <label>Position of Interest</label>
+                        <input type="text" id="companyPosition" placeholder="e.g., Software Engineer Co-op">
+                    </div>
+                    <div class="form-group">
+                        <label>OPT/CPT Friendly?</label>
+                        <select id="companyOPT">
+                            <option value="">Unknown</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                            <option value="Case-by-case">Case by Case</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Application Deadline</label>
+                        <input type="date" id="companyDeadline">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Key Takeaways</label>
+                    <textarea id="companyNotes" placeholder="What excited you about this company? Any concerns?"></textarea>
+                </div>
+                <button class="btn" onclick="addCompany()">Add Company</button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table id="companiesTable">
+                    <thead>
+                        <tr>
+                            <th>Interest</th>
+                            <th>Company</th>
+                            <th>Industry</th>
+                            <th>Position</th>
+                            <th>Booth/Session</th>
+                            <th>Recruiter</th>
+                            <th>OPT/CPT</th>
+                            <th>Deadline</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="companiesTableBody">
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: #6c757d;">
+                                No companies added yet. Add your first company above!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Contacts Tab -->
+        <div id="contacts" class="tab-content">
+            <h2>Contact Manager</h2>
+            <div class="form-section">
+                <h3>Add New Contact</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Name*</label>
+                        <input type="text" id="contactName" placeholder="e.g., John Doe">
+                    </div>
+                    <div class="form-group">
+                        <label>Company</label>
+                        <input type="text" id="contactCompany" placeholder="e.g., Microsoft">
+                    </div>
+                    <div class="form-group">
+                        <label>Position</label>
+                        <input type="text" id="contactPosition" placeholder="e.g., Senior Recruiter">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="contactEmail" placeholder="john.doe@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label>LinkedIn URL</label>
+                        <input type="url" id="contactLinkedIn" placeholder="https://linkedin.com/in/johndoe">
+                    </div>
+                    <div class="form-group">
+                        <label>Phone</label>
+                        <input type="tel" id="contactPhone" placeholder="(555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label>Connection Type</label>
+                        <select id="contactType">
+                            <option value="Career Fair">Career Fair</option>
+                            <option value="Alumni">Alumni</option>
+                            <option value="Faculty">Faculty</option>
+                            <option value="Referral">Referral</option>
+                            <option value="Cold Outreach">Cold Outreach</option>
+                            <option value="Event">Event</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Relationship Strength</label>
+                        <select id="contactStrength">
+                            <option value="Cold">Cold</option>
+                            <option value="Warm">Warm</option>
+                            <option value="Hot">Hot</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="contactNotes" placeholder="Personal details, conversation topics, preferences..."></textarea>
+                </div>
+                <button class="btn" onclick="addContact()">Add Contact</button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table id="contactsTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Company</th>
+                            <th>Position</th>
+                            <th>Type</th>
+                            <th>Email</th>
+                            <th>LinkedIn</th>
+                            <th>Relationship</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contactsTableBody">
+                        <tr>
+                            <td colspan="8" style="text-align: center; padding: 40px; color: #6c757d;">
+                                No contacts added yet. Start networking!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Jobs Tab -->
+        <div id="jobs" class="tab-content">
+            <h2>Job Applications</h2>
+            <div class="form-section">
+                <h3>Add New Job Application</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Company*</label>
+                        <input type="text" id="jobCompany" placeholder="e.g., Amazon">
+                    </div>
+                    <div class="form-group">
+                        <label>Position Title*</label>
+                        <input type="text" id="jobTitle" placeholder="e.g., Data Analyst Co-op">
+                    </div>
+                    <div class="form-group">
+                        <label>Job ID/Req Number</label>
+                        <input type="text" id="jobId" placeholder="e.g., REQ-2025-1234">
+                    </div>
+                    <div class="form-group">
+                        <label>Location</label>
+                        <input type="text" id="jobLocation" placeholder="e.g., Boston, MA (Hybrid)">
+                    </div>
+                    <div class="form-group">
+                        <label>Application Status</label>
+                        <select id="jobStatus">
+                            <option value="Not Started">Not Started</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Under Review">Under Review</option>
+                            <option value="Interview">Interview</option>
+                            <option value="Rejected">Rejected</option>
+                            <option value="Offer">Offer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Date Applied</label>
+                        <input type="date" id="jobDateApplied">
+                    </div>
+                    <div class="form-group">
+                        <label>Application Deadline</label>
+                        <input type="date" id="jobDeadline">
+                    </div>
+                    <div class="form-group">
+                        <label>Salary Range</label>
+                        <input type="text" id="jobSalary" placeholder="e.g., $25-30/hour">
+                    </div>
+                    <div class="form-group">
+                        <label>Interest Level (1-5)</label>
+                        <select id="jobInterest">
+                            <option value="5">5 - Dream Job</option>
+                            <option value="4">4 - Very Interested</option>
+                            <option value="3">3 - Interested</option>
+                            <option value="2">2 - Backup Option</option>
+                            <option value="1">1 - Practice</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Job Posting URL</label>
+                        <input type="url" id="jobUrl" placeholder="https://...">
+                    </div>
+                </div>
+                <button class="btn" onclick="addJob()">Add Job Application</button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table id="jobsTable">
+                    <thead>
+                        <tr>
+                            <th>Interest</th>
+                            <th>Company</th>
+                            <th>Position</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Applied</th>
+                            <th>Deadline</th>
+                            <th>Salary</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="jobsTableBody">
+                        <tr>
+                            <td colspan="9" style="text-align: center; padding: 40px; color: #6c757d;">
+                                No job applications yet. Start applying!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Follow-Up Tab -->
+        <div id="followup" class="tab-content">
+            <h2>Follow-Up Tracker</h2>
+            <div class="form-section">
+                <h3>Add Follow-Up Task</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Company*</label>
+                        <input type="text" id="followupCompany" placeholder="e.g., Meta">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Person</label>
+                        <input type="text" id="followupContact" placeholder="e.g., Sarah Johnson">
+                    </div>
+                    <div class="form-group">
+                        <label>Follow-Up Type</label>
+                        <select id="followupType">
+                            <option value="Thank You">Thank You Email</option>
+                            <option value="Check-in">Check-in</option>
+                            <option value="Application Status">Application Status</option>
+                            <option value="Information Request">Information Request</option>
+                            <option value="LinkedIn Connection">LinkedIn Connection</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date*</label>
+                        <input type="date" id="followupDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="followupPriority">
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="followupStatus">
+                            <option value="Pending">Pending</option>
+                            <option value="Completed">Completed</option>
+                            <option value="No Response">No Response</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn" onclick="addFollowUp()">Add Follow-Up</button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table id="followupTable">
+                    <thead>
+                        <tr>
+                            <th>Due Date</th>
+                            <th>Company</th>
+                            <th>Contact</th>
+                            <th>Type</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="followupTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #6c757d;">
+                                No follow-ups scheduled. Remember to follow up within 48 hours!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Interviews Tab -->
+        <div id="interviews" class="tab-content">
+            <h2>Interview Preparation</h2>
+            <div class="form-section">
+                <h3>Schedule Interview</h3>
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Company*</label>
+                        <input type="text" id="interviewCompany" placeholder="e.g., Spotify">
+                    </div>
+                    <div class="form-group">
+                        <label>Position</label>
+                        <input type="text" id="interviewPosition" placeholder="e.g., UX Design Co-op">
+                    </div>
+                    <div class="form-group">
+                        <label>Interview Date*</label>
+                        <input type="datetime-local" id="interviewDate">
+                    </div>
+                    <div class="form-group">
+                        <label>Interview Type</label>
+                        <select id="interviewType">
+                            <option value="Phone Screen">Phone Screen</option>
+                            <option value="Video">Video Interview</option>
+                            <option value="Technical">Technical Interview</option>
+                            <option value="Behavioral">Behavioral Interview</option>
+                            <option value="Panel">Panel Interview</option>
+                            <option value="On-site">On-site Interview</option>
+                            <option value="Final Round">Final Round</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Interviewer(s)</label>
+                        <input type="text" id="interviewers" placeholder="e.g., Tom Chen, Director of Engineering">
+                    </div>
+                    <div class="form-group">
+                        <label>Duration</label>
+                        <input type="text" id="interviewDuration" placeholder="e.g., 45 minutes">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Preparation Notes</label>
+                    <textarea id="interviewPrep" placeholder="Key points to remember, questions to ask, STAR stories to prepare..."></textarea>
+                </div>
+                <button class="btn" onclick="addInterview()">Add Interview</button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table id="interviewsTable">
+                    <thead>
+                        <tr>
+                            <th>Date/Time</th>
+                            <th>Company</th>
+                            <th>Position</th>
+                            <th>Type</th>
+                            <th>Interviewer(s)</th>
+                            <th>Duration</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="interviewsTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #6c757d;">
+                                No interviews scheduled yet. Keep applying!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <!-- Templates Tab -->
+        <div id="templates" class="tab-content">
+            <h2>Email Templates</h2>
+            
+            <div class="email-template">
+                <h3>📧 Post-Career Fair Thank You</h3>
+                <pre>Subject: Thank You - [Your Name] from Northeastern Talent Connect
+
+Dear [Recruiter Name],
+
+Thank you for taking the time to speak with me at Talent Connect on [day] about [specific role/topic]. I was particularly excited to learn about [specific detail from conversation].
+
+As we discussed, my experience in [relevant skill/project] aligns well with [specific need they mentioned]. [Add specific example connecting your background to their needs].
+
+I've applied to [specific position] on your careers portal and attached my resume for your reference. I would welcome the opportunity to discuss how my [specific skill] could contribute to [team/project].
+
+Thank you again for your insights about [something specific they shared].
+
+Best regards,
+[Your Name]
+[Email] | [LinkedIn] | [Phone]</pre>
+                <button class="copy-btn" onclick="copyTemplate(this)">Copy Template</button>
+            </div>
+            
+            <div class="email-template">
+                <h3>👋 Alumni Outreach</h3>
+                <pre>Subject: Fellow Husky Seeking Talent Connect Insights
+
+Hi [Name],
+
+I'm [Your name], a [year/major] at Northeastern. I'll be attending Talent Connect next week and noticed you're at [Company]. Your path from Northeastern to [their role] is really inspiring.
+
+I'm particularly interested in [specific aspect of company/role]. Would you have 10 minutes for a quick call or coffee to share insights about [Company]'s culture and what they look for in candidates?
+
+If unavailable, any quick tips for standing out at the career fair would be greatly appreciated!
+
+Go Huskies!
+[Your name]</pre>
+                <button class="copy-btn" onclick="copyTemplate(this)">Copy Template</button>
+            </div>
+            
+            <div class="email-template">
+                <h3>🔄 Follow-Up (No Response)</h3>
+                <pre>Subject: Following Up - [Your Name] - [Position] at [Company]
+
+Hi [Recruiter Name],
+
+I wanted to follow up on my application for the [position] role at [Company] that we discussed at Talent Connect on [date].
+
+I remain very enthusiastic about the opportunity to contribute to [specific project/team discussed]. Since we spoke, I've [relevant update - e.g., completed a relevant project, earned a certification, etc.].
+
+I understand you have a busy schedule. Is there any additional information I can provide to support my application?
+
+Thank you for your time and consideration.
+
+Best regards,
+[Your Name]</pre>
+                <button class="copy-btn" onclick="copyTemplate(this)">Copy Template</button>
+            </div>
+            
+            <div class="email-template">
+                <h3>🤝 LinkedIn Connection Request</h3>
+                <pre>Hi [Name],
+
+It was great meeting you at Northeastern's Talent Connect career fair and learning about [specific topic discussed] at [Company]. I'm very interested in [specific opportunity] and would love to stay connected as I pursue opportunities in [field/industry].
+
+Looking forward to connecting!
+
+Best,
+[Your Name]
+Northeastern University | [Major] [Year]</pre>
+                <button class="copy-btn" onclick="copyTemplate(this)">Copy Template</button>
+            </div>
+            
+            <div class="email-template">
+                <h3>💬 Informational Interview Request</h3>
+                <pre>Subject: Northeastern Student - Quick Question about [Company/Role]
+
+Dear [Name],
+
+I'm [Your name], a [year] [major] student at Northeastern University. I found your profile through [LinkedIn/Alumni network/etc.] and was impressed by your journey from [their background] to [current role] at [Company].
+
+I'm exploring career paths in [field] and would greatly value your perspective on [specific topic - e.g., breaking into the industry, skill development, company culture].
+
+Would you have 15-20 minutes for a brief phone call or virtual coffee chat in the next couple of weeks? I'm happy to work around your schedule.
+
+Thank you for considering my request.
+
+Best regards,
+[Your Name]
+[LinkedIn profile]</pre>
+                <button class="copy-btn" onclick="copyTemplate(this)">Copy Template</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/app.js"></script>
+</body>
+</html>
