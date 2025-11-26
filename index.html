@@ -50,11 +50,17 @@
                 </div>
             </div>
             
-            <!-- Filters -->
+            <!-- Filters and Customization -->
             <div class="filters-section">
                 <div class="filters-header">
                     <h3>Filters</h3>
-                    <button class="filter-clear-link" onclick="clearSpreadsheetFilters()">Clear all</button>
+                    <div style="display: flex; gap: 12px;">
+                        <button class="customize-btn" onclick="toggleCustomizationSidebar()">
+                            <span>⚙️</span>
+                            Customize View
+                        </button>
+                        <button class="filter-clear-link" onclick="clearSpreadsheetFilters()">Clear all</button>
+                    </div>
                 </div>
                 <div class="filters-grid">
                     <select id="filterStatus">
@@ -304,6 +310,23 @@
             <h2>Job Applications</h2>
             <div class="form-section">
                 <h3>Add New Job Application</h3>
+                
+                <!-- Quick Template Selector -->
+                <div style="margin-bottom: 20px; padding: 16px; background: #fafbfc; border-radius: 8px; border: 1px solid #e5e7eb;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #333;">
+                        🎯 Quick Template (Optional)
+                    </label>
+                    <select id="jobTemplate" onchange="applyJobTemplate(this.value)" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
+                        <option value="">-- Choose a template to auto-fill --</option>
+                        <option value="swe">Software Engineering Co-op</option>
+                        <option value="data">Data Science Co-op</option>
+                        <option value="consulting">Consulting Co-op</option>
+                        <option value="design">UX/Design Co-op</option>
+                        <option value="research">Research Position</option>
+                        <option value="startup">Startup Position</option>
+                    </select>
+                </div>
+                
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Company*</label>
@@ -341,6 +364,18 @@
                             <option value="3">3 - Interested</option>
                             <option value="2">2 - Backup Option</option>
                             <option value="1">1 - Practice</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Co-op Cycle</label>
+                        <select id="jobCoopCycle">
+                            <option value="">Not applicable</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Linked Contact (Warm Application?)</label>
+                        <select id="jobContactLink">
+                            <option value="">No contact (Cold)</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -423,6 +458,8 @@
                             <th>Status</th>
                             <th>Applied</th>
                             <th>Deadline</th>
+                            <th>Co-op Cycle</th>
+                            <th>Type</th>
                             <th>Salary</th>
                             <th>Actions</th>
                         </tr>
@@ -684,10 +721,49 @@ Best regards,
         </div>
     </div>
     
+    <!-- Customization Sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeCustomizationSidebar()"></div>
+    <div class="customization-sidebar" id="customizationSidebar">
+        <div class="sidebar-header">
+            <h2>Customize View</h2>
+            <button class="close-sidebar" onclick="closeCustomizationSidebar()">×</button>
+        </div>
+        
+        <div class="sidebar-tabs">
+            <button class="sidebar-tab active" onclick="switchSidebarTab('columns')">Columns</button>
+            <button class="sidebar-tab" onclick="switchSidebarTab('formatting')">Formatting</button>
+        </div>
+        
+        <div class="sidebar-content">
+            <div class="sidebar-tab-content" id="columnsTab" style="display: block;">
+                <!-- Populated by JavaScript -->
+            </div>
+            <div class="sidebar-tab-content" id="formattingTab" style="display: none;">
+                <!-- Populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Batch Actions Bar -->
+    <div class="batch-actions-bar" id="batchActionsBar">
+        <span class="batch-info" id="batchInfo">0 selected</span>
+        <div class="batch-actions">
+            <button class="batch-action-btn" onclick="batchUpdateStatus('Submitted')">Mark Submitted</button>
+            <button class="batch-action-btn" onclick="batchUpdateStatus('Interview')">Mark Interview</button>
+            <button class="batch-action-btn" onclick="batchArchive()">Archive</button>
+            <button class="batch-action-btn" onclick="batchExport()">Export CSV</button>
+            <button class="batch-action-btn danger" onclick="batchDelete()">Delete</button>
+            <button class="batch-action-btn" onclick="clearSelection()">Clear</button>
+        </div>
+    </div>
+
     <!-- Load modules in order -->
     <script src="js/data.js"></script>
     <script src="js/helpers.js"></script>
     <script src="js/editing.js"></script>
+    <script src="js/customization.js"></script>
+    <script src="js/features.js"></script>
+    <script src="js/batchActions.js"></script>
     <script src="js/companies.js"></script>
     <script src="js/contacts.js"></script>
     <script src="js/jobs.js"></script>

@@ -50,14 +50,3 @@ function copyTemplate(button) {
     });
 }
 
-/**
- * Switch between tabs
- */
-function switchTab(tabName) {
-    document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-    
-    event.target.classList.add('active');
-    document.getElementById(tabName).classList.add('active');
-}
-
