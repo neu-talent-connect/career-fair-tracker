@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A comprehensive career fair tracking system for managing companies, contacts, job applications, follow-ups, and interviews.">
-    <title>Career Fair Tracking System</title>
+    <meta name="description" content="A comprehensive job and co-op tracking system for managing companies, contacts, applications, follow-ups, and interviews.">
+    <title>Job / Co-op Tracker - Northeastern University</title>
     <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🎯 Career Fair Tracking System</h1>
-            <p>Northeastern University - Talent Connect 2025</p>
+            <div>
+                <h1>Job / Co-op Tracker</h1>
+                <p>Northeastern University</p>
+            </div>
         </div>
         
         <div class="tabs">
@@ -24,44 +26,92 @@
             <button class="tab" onclick="switchTab('templates')">📝 Templates</button>
         </div>
         
-        <!-- Dashboard Tab -->
+        <!-- Dashboard Tab - Master Spreadsheet -->
         <div id="dashboard" class="tab-content active">
-            <h2>Quick Overview</h2>
+            <h2>Master Application Tracker</h2>
+            
+            <!-- Stats Overview -->
             <div class="dashboard">
                 <div class="stat-card">
-                    <h3>Companies Contacted</h3>
-                    <div class="number" id="companiesCount">0</div>
+                    <h3>Total Applications</h3>
+                    <div class="number" id="totalAppsCount">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Applications Sent</h3>
-                    <div class="number" id="applicationsCount">0</div>
+                    <h3>Submitted</h3>
+                    <div class="number" id="submittedCount">0</div>
                 </div>
                 <div class="stat-card">
-                    <h3>Follow-ups Pending</h3>
-                    <div class="number" id="followupsCount">0</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Interviews Scheduled</h3>
+                    <h3>Interviews</h3>
                     <div class="number" id="interviewsCount">0</div>
                 </div>
-            </div>
-            
-            <div class="priority-section">
-                <h3>🔥 Top Priority Companies</h3>
-                <div id="priorityList">
-                    <div class="empty-state">
-                        <p>No companies added yet. Start by adding companies in the Companies tab!</p>
-                    </div>
+                <div class="stat-card">
+                    <h3>Offers</h3>
+                    <div class="number" id="offersCount">0</div>
                 </div>
             </div>
             
-            <div class="timeline-section">
-                <h3>📅 Upcoming Deadlines</h3>
-                <div id="deadlinesList">
-                    <div class="empty-state">
-                        <p>No upcoming deadlines. Add jobs with application deadlines to see them here.</p>
-                    </div>
+            <!-- Filters -->
+            <div class="filters-section">
+                <div class="filters-header">
+                    <h3>Filters</h3>
+                    <button class="filter-clear-link" onclick="clearSpreadsheetFilters()">Clear all</button>
                 </div>
+                <div class="filters-grid">
+                    <select id="filterStatus">
+                        <option value="">All Status</option>
+                        <option value="Not Started">Not Started</option>
+                        <option value="In Progress">In Progress</option>
+                        <option value="Submitted">Submitted</option>
+                        <option value="Under Review">Under Review</option>
+                        <option value="Interview">Interview</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Offer">Offer</option>
+                    </select>
+                    <select id="filterInterest">
+                        <option value="">All Interest Levels</option>
+                        <option value="5">5 - Dream Job</option>
+                        <option value="4">4 - Very Interested</option>
+                        <option value="3">3 - Interested</option>
+                        <option value="2">2 - Backup</option>
+                        <option value="1">1 - Practice</option>
+                    </select>
+                    <input type="text" id="filterSearch" placeholder="Search company or position...">
+                </div>
+                <button class="btn filter-apply-btn" onclick="applySpreadsheetFilters()">Apply Filters</button>
+            </div>
+            
+            <!-- Spreadsheet View -->
+            <div class="spreadsheet-container" style="overflow-x: auto;">
+                <table class="spreadsheet-table" id="spreadsheetTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortSpreadsheet('interest')">Interest</th>
+                            <th onclick="sortSpreadsheet('company')">Company</th>
+                            <th onclick="sortSpreadsheet('title')">Position</th>
+                            <th onclick="sortSpreadsheet('status')">Status</th>
+                            <th onclick="sortSpreadsheet('datePosted')">Date Posted</th>
+                            <th onclick="sortSpreadsheet('dateApplied')">Date Applied</th>
+                            <th onclick="sortSpreadsheet('deadline')">Deadline</th>
+                            <th>Contact</th>
+                            <th>Email</th>
+                            <th>Phone</th>
+                            <th>Location</th>
+                            <th>Salary</th>
+                            <th>Resume</th>
+                            <th>Cover Letter</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="spreadsheetTableBody">
+                        <tr>
+                            <td colspan="16" style="text-align: center; padding: 40px; color: #6c757d;">
+                                No applications yet. Add your first job application in the Jobs tab or click Add Row below!
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button class="add-row-btn" onclick="addSpreadsheetRow()">+ Add New Application</button>
             </div>
         </div>
         
@@ -123,7 +173,10 @@
                     </div>
                     <div class="form-group">
                         <label>Application Deadline</label>
-                        <input type="date" id="companyDeadline">
+                        <div class="date-input-wrapper">
+                            <input type="date" id="companyDeadline">
+                            <button type="button" class="quick-date-btn" onclick="setToday('companyDeadline')">Today</button>
+                        </div>
                     </div>
                 </div>
                 <div class="form-group">
@@ -137,6 +190,7 @@
                 <table id="companiesTable">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Interest</th>
                             <th>Company</th>
                             <th>Industry</th>
@@ -145,12 +199,13 @@
                             <th>Recruiter</th>
                             <th>OPT/CPT</th>
                             <th>Deadline</th>
+                            <th>Notes</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="companiesTableBody">
                         <tr>
-                            <td colspan="9" style="text-align: center; padding: 40px; color: #6c757d;">
+                            <td colspan="11" style="text-align: center; padding: 40px; color: #6c757d;">
                                 No companies added yet. Add your first company above!
                             </td>
                         </tr>
@@ -220,19 +275,22 @@
                 <table id="contactsTable">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Name</th>
                             <th>Company</th>
                             <th>Position</th>
                             <th>Type</th>
                             <th>Email</th>
                             <th>LinkedIn</th>
+                            <th>Phone</th>
                             <th>Relationship</th>
+                            <th>Notes</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="contactsTableBody">
                         <tr>
-                            <td colspan="8" style="text-align: center; padding: 40px; color: #6c757d;">
+                            <td colspan="11" style="text-align: center; padding: 40px; color: #6c757d;">
                                 No contacts added yet. Start networking!
                             </td>
                         </tr>
@@ -276,18 +334,6 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Date Applied</label>
-                        <input type="date" id="jobDateApplied">
-                    </div>
-                    <div class="form-group">
-                        <label>Application Deadline</label>
-                        <input type="date" id="jobDeadline">
-                    </div>
-                    <div class="form-group">
-                        <label>Salary Range</label>
-                        <input type="text" id="jobSalary" placeholder="e.g., $25-30/hour">
-                    </div>
-                    <div class="form-group">
                         <label>Interest Level (1-5)</label>
                         <select id="jobInterest">
                             <option value="5">5 - Dream Job</option>
@@ -298,9 +344,70 @@
                         </select>
                     </div>
                     <div class="form-group">
+                        <label>Date Posted</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="jobDatePosted">
+                            <button type="button" class="quick-date-btn" onclick="setToday('jobDatePosted')">Today</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Date Applied</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="jobDateApplied">
+                            <button type="button" class="quick-date-btn" onclick="setToday('jobDateApplied')">Today</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Application Deadline</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="jobDeadline">
+                            <button type="button" class="quick-date-btn" onclick="setToday('jobDeadline')">Today</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Person</label>
+                        <input type="text" id="jobContact" placeholder="e.g., Jane Smith">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Email</label>
+                        <input type="email" id="jobContactEmail" placeholder="jane.smith@company.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Phone</label>
+                        <input type="tel" id="jobContactPhone" placeholder="(555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label>Salary Range</label>
+                        <input type="text" id="jobSalary" placeholder="e.g., $25-30/hour">
+                    </div>
+                    <div class="form-group">
+                        <label>Resume Version</label>
+                        <select id="jobResume">
+                            <option value="None">None</option>
+                            <option value="Standard">Standard</option>
+                            <option value="Tailored">Tailored</option>
+                            <option value="Version 1">Version 1</option>
+                            <option value="Version 2">Version 2</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Cover Letter</label>
+                        <select id="jobCoverLetter">
+                            <option value="None">None</option>
+                            <option value="Required">Required</option>
+                            <option value="Optional">Optional</option>
+                            <option value="Submitted">Submitted</option>
+                            <option value="Not Needed">Not Needed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
                         <label>Job Posting URL</label>
                         <input type="url" id="jobUrl" placeholder="https://...">
                     </div>
+                </div>
+                <div class="form-group">
+                    <label>Notes</label>
+                    <textarea id="jobNotes" placeholder="Additional notes, requirements, deadlines, etc."></textarea>
                 </div>
                 <button class="btn" onclick="addJob()">Add Job Application</button>
             </div>
@@ -357,7 +464,10 @@
                     </div>
                     <div class="form-group">
                         <label>Due Date*</label>
-                        <input type="date" id="followupDate">
+                        <div class="date-input-wrapper">
+                            <input type="date" id="followupDate">
+                            <button type="button" class="quick-date-btn" onclick="setToday('followupDate')">Today</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Priority</label>
@@ -419,7 +529,10 @@
                     </div>
                     <div class="form-group">
                         <label>Interview Date*</label>
-                        <input type="datetime-local" id="interviewDate">
+                        <div class="date-input-wrapper">
+                            <input type="datetime-local" id="interviewDate">
+                            <button type="button" class="quick-date-btn" onclick="setTodayTime('interviewDate')">Now</button>
+                        </div>
                     </div>
                     <div class="form-group">
                         <label>Interview Type</label>
@@ -453,18 +566,20 @@
                 <table id="interviewsTable">
                     <thead>
                         <tr>
+                            <th></th>
                             <th>Date/Time</th>
                             <th>Company</th>
                             <th>Position</th>
                             <th>Type</th>
                             <th>Interviewer(s)</th>
                             <th>Duration</th>
+                            <th>Prep Notes</th>
                             <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody id="interviewsTableBody">
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 40px; color: #6c757d;">
+                            <td colspan="9" style="text-align: center; padding: 40px; color: #6c757d;">
                                 No interviews scheduled yet. Keep applying!
                             </td>
                         </tr>
@@ -569,6 +684,16 @@ Best regards,
         </div>
     </div>
     
-    <script src="js/app.js"></script>
+    <!-- Load modules in order -->
+    <script src="js/data.js"></script>
+    <script src="js/helpers.js"></script>
+    <script src="js/editing.js"></script>
+    <script src="js/companies.js"></script>
+    <script src="js/contacts.js"></script>
+    <script src="js/jobs.js"></script>
+    <script src="js/followups.js"></script>
+    <script src="js/interviews.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/main.js"></script>
 </body>
 </html>
