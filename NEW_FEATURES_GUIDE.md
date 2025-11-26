@@ -44,7 +44,8 @@ Rearrange columns in your spreadsheet by dragging them in the Customize View sid
 - Smooth animations
 
 ---
-
+ 
+ 
 ## 3. ✅ Application Templates
 
 ### What It Does
