@@ -1,7 +1,4 @@
-/**
- * Data Storage and Persistence Module
- * Handles localStorage operations and data structure
- */
+// Data storage - handles saving/loading from localStorage
 
 // Global data structure
 let data = {
@@ -12,9 +9,7 @@ let data = {
     interviews: []
 };
 
-/**
- * Load data from localStorage
- */
+// Load saved data from browser storage
 function loadData() {
     const saved = localStorage.getItem('careerFairData');
     if (saved) {
@@ -28,9 +23,7 @@ function loadData() {
     }
 }
 
-/**
- * Save data to localStorage
- */
+// Save data to browser storage
 function saveData() {
     try {
         localStorage.setItem('careerFairData', JSON.stringify(data));
@@ -41,9 +34,7 @@ function saveData() {
     }
 }
 
-/**
- * Delete an item from any collection
- */
+// Delete item with confirmation
 function deleteItem(type, id) {
     if (confirm('Are you sure you want to delete this item?')) {
         data[type] = data[type].filter(item => item.id !== id);
@@ -52,9 +43,7 @@ function deleteItem(type, id) {
     }
 }
 
-/**
- * Update all tables at once
- */
+// Refresh all tables
 function updateAllTables() {
     updateCompaniesTable();
     updateContactsTable();

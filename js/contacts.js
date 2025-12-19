@@ -1,11 +1,6 @@
-/**
- * Contact Management Module
- * Handles contact tracking functionality
- */
+// Contact management
 
-/**
- * Add a new contact
- */
+// Add new contact
 function addContact() {
     const contact = {
         id: Date.now(),
@@ -32,9 +27,7 @@ function addContact() {
     clearContactForm();
 }
 
-/**
- * Clear contact form
- */
+// Clear the form
 function clearContactForm() {
     document.getElementById('contactName').value = '';
     document.getElementById('contactCompany').value = '';

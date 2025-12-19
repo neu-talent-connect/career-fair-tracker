@@ -1,14 +1,9 @@
-/**
- * Batch Actions Module
- * Handles bulk operations on multiple job applications
- */
+// Batch actions - select multiple rows and perform bulk operations
 
-// Track selected rows
+// Track which rows are selected
 let selectedRows = new Set();
 
-/**
- * Toggle row selection
- */
+// Toggle single row selection
 function toggleRowSelection(jobId) {
     if (selectedRows.has(jobId)) {
         selectedRows.delete(jobId);
@@ -20,9 +15,7 @@ function toggleRowSelection(jobId) {
     updateCheckboxStates();
 }
 
-/**
- * Toggle all rows selection
- */
+// Select/deselect all visible rows
 function toggleAllRows() {
     const allCheckbox = document.getElementById('selectAllCheckbox');
     
@@ -39,9 +32,7 @@ function toggleAllRows() {
     updateCheckboxStates();
 }
 
-/**
- * Update checkbox states to match selection
- */
+// Update checkboxes to match current selection
 function updateCheckboxStates() {
     document.querySelectorAll('.row-checkbox').forEach(checkbox => {
         const jobId = parseInt(checkbox.dataset.jobId);

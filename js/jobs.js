@@ -1,11 +1,6 @@
-/**
- * Job Application Management Module
- * Handles job tracking functionality
- */
+// Job application tracking
 
-/**
- * Add a new job application
- */
+// Add new job application
 function addJob() {
     const job = {
         id: Date.now(),
@@ -97,13 +92,12 @@ function clearJobForm() {
 function updateJobsTable() {
     const tbody = document.getElementById('jobsTableBody');
     if (data.jobs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="11" style="text-align: center; padding: 40px; color: #6c757d;">No job applications yet. Start applying!</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 40px; color: #6c757d;">No job applications yet. Start applying!</td></tr>';
         return;
     }
     
     tbody.innerHTML = data.jobs.map(job => {
         const linkedContact = getLinkedContact(job.id);
-        const isWarm = !!linkedContact;
         const cycleProximity = getCycleProximity(job.coopCycle);
         
         return `
@@ -116,7 +110,6 @@ function updateJobsTable() {
             <td><span class="editable-field" data-type="jobs" data-item-id="${job.id}" data-field="dateApplied" data-original-value="${job.dateApplied || ''}">${job.dateApplied || '-'}</span></td>
             <td><span class="editable-field" data-type="jobs" data-item-id="${job.id}" data-field="deadline" data-original-value="${job.deadline || ''}">${job.deadline || '-'}</span></td>
             <td>${job.coopCycle || '-'} ${cycleProximity === 'imminent' ? '🔥' : cycleProximity === 'upcoming' ? '⏰' : ''}</td>
-            <td>${isWarm ? '🔥 Warm' : '❄️ Cold'}</td>
             <td><span class="editable-field" data-type="jobs" data-item-id="${job.id}" data-field="salary" data-original-value="${job.salary || ''}">${job.salary || '-'}</span></td>
             <td>
                 <div class="action-buttons">
@@ -128,7 +121,7 @@ function updateJobsTable() {
         </tr>
         ${job.interviewChecklist ? `
         <tr class="expanded-details show" id="checklist-${job.id}">
-            <td colspan="11" class="details-cell" style="background: #fafbfc;">
+            <td colspan="10" class="details-cell" style="background: #fafbfc;">
                 <div style="padding: 16px;">
                     <h4 style="margin-bottom: 12px; color: var(--northeastern-red); font-size: 14px; font-weight: 600;">📋 Interview Prep Checklist</h4>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px;">

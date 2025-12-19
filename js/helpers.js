@@ -1,11 +1,6 @@
-/**
- * Helper Utilities Module
- * Common utility functions used throughout the app
- */
+// Utility functions
 
-/**
- * Set date input to today's date
- */
+// Set date input to today
 function setToday(inputId) {
     const input = document.getElementById(inputId);
     if (input) {
@@ -17,9 +12,7 @@ function setToday(inputId) {
     }
 }
 
-/**
- * Set datetime input to current date and time
- */
+// Set datetime to now
 function setTodayTime(inputId) {
     const input = document.getElementById(inputId);
     if (input) {
@@ -33,9 +26,7 @@ function setTodayTime(inputId) {
     }
 }
 
-/**
- * Copy email template to clipboard
- */
+// Copy email template to clipboard
 function copyTemplate(button) {
     const template = button.previousElementSibling.textContent;
     navigator.clipboard.writeText(template).then(() => {
@@ -48,5 +39,25 @@ function copyTemplate(button) {
         console.error('Failed to copy:', error);
         alert('Failed to copy template. Please select and copy manually.');
     });
+}
+
+// Hide the getting started banner
+function dismissGettingStarted() {
+    const banner = document.getElementById('gettingStartedBanner');
+    if (banner) {
+        banner.style.display = 'none';
+        localStorage.setItem('gettingStartedDismissed', 'true');
+    }
+}
+
+// Show banner if user hasn't dismissed it and has no jobs yet
+function checkGettingStartedBanner() {
+    const dismissed = localStorage.getItem('gettingStartedDismissed');
+    const banner = document.getElementById('gettingStartedBanner');
+    
+    // Only show if not dismissed AND there are no jobs yet
+    if (!dismissed && data.jobs.length === 0 && banner) {
+        banner.style.display = 'flex';
+    }
 }
 

@@ -1,11 +1,6 @@
-/**
- * Company Management Module
- * Handles company tracking functionality
- */
+// Company tracking
 
-/**
- * Add a new company
- */
+// Add new company
 function addCompany() {
     const company = {
         id: Date.now(),
@@ -32,9 +27,7 @@ function addCompany() {
     clearCompanyForm();
 }
 
-/**
- * Clear company form
- */
+// Clear the form
 function clearCompanyForm() {
     document.getElementById('companyName').value = '';
     document.getElementById('companyIndustry').value = '';

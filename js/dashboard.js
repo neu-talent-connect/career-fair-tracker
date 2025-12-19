@@ -1,11 +1,6 @@
-/**
- * Dashboard and Spreadsheet Module
- * Handles the master spreadsheet view and dashboard statistics
- */
+// Dashboard spreadsheet and stats
 
-/**
- * Update dashboard statistics
- */
+// Update dashboard stats
 function updateDashboard() {
     // Update counts
     document.getElementById('totalAppsCount').textContent = data.jobs.length;
@@ -17,9 +12,7 @@ function updateDashboard() {
     updateSpreadsheetTable();
 }
 
-/**
- * Update the spreadsheet table
- */
+// Render the main spreadsheet table
 function updateSpreadsheetTable() {
     const tbody = document.getElementById('spreadsheetTableBody');
     const thead = document.querySelector('#spreadsheetTable thead tr');
@@ -57,7 +50,6 @@ function updateSpreadsheetTable() {
             dateApplied: () => formatDate(job.dateApplied),
             deadline: () => `<span class="${deadlineUrgency}">${formatDate(job.deadline)}</span>`,
             coopCycle: () => job.coopCycle ? `${job.coopCycle} ${cycleProximity === 'imminent' ? '🔥' : cycleProximity === 'upcoming' ? '⏰' : ''}` : '-',
-            networking: () => isWarm ? '🔥 Warm' : '❄️ Cold',
             contactPerson: () => job.contactPerson || (linkedContact ? linkedContact.name : '-'),
             contactEmail: () => job.contactEmail ? `<a href="mailto:${job.contactEmail}">${job.contactEmail}</a>` : (linkedContact ? `<a href="mailto:${linkedContact.email}">${linkedContact.email}</a>` : '-'),
             contactPhone: () => job.contactPhone || (linkedContact ? linkedContact.phone : '-'),
@@ -78,10 +70,6 @@ function updateSpreadsheetTable() {
         const cells = visibleCols.map(col => {
             if (col.id === 'actions') {
                 return `<td onclick="event.stopPropagation()">${cellRenderers[col.id]()}</td>`;
-            }
-            // Non-editable columns
-            if (['networking'].includes(col.id)) {
-                return `<td>${cellRenderers[col.id]()}</td>`;
             }
             
             const inputType = col.id === 'contactEmail' ? 'email' : 
@@ -294,8 +282,13 @@ function getFilteredJobs() {
     const statusFilter = document.getElementById('filterStatus')?.value || '';
     const interestFilter = document.getElementById('filterInterest')?.value || '';
     const searchFilter = document.getElementById('filterSearch')?.value.toLowerCase() || '';
+    const coopCycleFilter = document.getElementById('filterCoopCycle')?.value || '';
     
     let filtered = [...data.jobs];
+    
+    if (coopCycleFilter) {
+        filtered = filtered.filter(job => job.coopCycle === coopCycleFilter);
+    }
     
     if (statusFilter) {
         filtered = filtered.filter(job => job.status === statusFilter);
@@ -329,6 +322,7 @@ function clearSpreadsheetFilters() {
     if (document.getElementById('filterStatus')) document.getElementById('filterStatus').value = '';
     if (document.getElementById('filterInterest')) document.getElementById('filterInterest').value = '';
     if (document.getElementById('filterSearch')) document.getElementById('filterSearch').value = '';
+    if (document.getElementById('filterCoopCycle')) document.getElementById('filterCoopCycle').value = '';
     applySpreadsheetFilters();
 }
 

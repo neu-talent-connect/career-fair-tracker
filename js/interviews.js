@@ -1,11 +1,6 @@
-/**
- * Interview Management Module
- * Handles interview scheduling and tracking
- */
+// Interview tracking
 
-/**
- * Add a new interview
- */
+// Add new interview
 function addInterview() {
     const interview = {
         id: Date.now(),
@@ -30,9 +25,7 @@ function addInterview() {
     clearInterviewForm();
 }
 
-/**
- * Clear interview form
- */
+// Clear the form
 function clearInterviewForm() {
     document.getElementById('interviewCompany').value = '';
     document.getElementById('interviewPosition').value = '';

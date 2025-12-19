@@ -1,11 +1,6 @@
-/**
- * Follow-up Management Module
- * Handles follow-up task tracking
- */
+// Follow-up reminders
 
-/**
- * Add a new follow-up task
- */
+// Add new follow-up
 function addFollowUp() {
     const followup = {
         id: Date.now(),
@@ -29,9 +24,7 @@ function addFollowUp() {
     clearFollowUpForm();
 }
 
-/**
- * Clear follow-up form
- */
+// Clear the form
 function clearFollowUpForm() {
     document.getElementById('followupCompany').value = '';
     document.getElementById('followupContact').value = '';

@@ -1,9 +1,6 @@
-/**
- * Column Customization Module
- * Handles Notion-style column management, date formatting, and view preferences
- */
+// Column customization - show/hide columns and change date formats
 
-// Default column configuration
+// Default columns
 const DEFAULT_COLUMNS = [
     { id: 'interest', name: 'Interest', visible: true, order: 0 },
     { id: 'company', name: 'Company', visible: true, order: 1 },
@@ -13,17 +10,32 @@ const DEFAULT_COLUMNS = [
     { id: 'dateApplied', name: 'Date Applied', visible: true, order: 5 },
     { id: 'deadline', name: 'Deadline', visible: true, order: 6 },
     { id: 'coopCycle', name: 'Co-op Cycle', visible: true, order: 7 },
-    { id: 'networking', name: 'Type', visible: true, order: 8 },
-    { id: 'contactPerson', name: 'Contact', visible: true, order: 9 },
-    { id: 'contactEmail', name: 'Email', visible: false, order: 10 },
-    { id: 'contactPhone', name: 'Phone', visible: false, order: 11 },
-    { id: 'location', name: 'Location', visible: true, order: 12 },
-    { id: 'salary', name: 'Salary', visible: true, order: 13 },
-    { id: 'resume', name: 'Resume', visible: true, order: 14 },
-    { id: 'coverLetter', name: 'Cover Letter', visible: true, order: 15 },
-    { id: 'notes', name: 'Notes', visible: true, order: 16 },
-    { id: 'actions', name: 'Actions', visible: true, order: 17 }
+    { id: 'contactPerson', name: 'Contact', visible: false, order: 8 },
+    { id: 'contactEmail', name: 'Email', visible: false, order: 9 },
+    { id: 'contactPhone', name: 'Phone', visible: false, order: 10 },
+    { id: 'location', name: 'Location', visible: false, order: 11 },
+    { id: 'salary', name: 'Salary', visible: false, order: 12 },
+    { id: 'resume', name: 'Resume', visible: false, order: 13 },
+    { id: 'coverLetter', name: 'Cover Letter', visible: false, order: 14 },
+    { id: 'notes', name: 'Notes', visible: true, order: 15 },
+    { id: 'actions', name: 'Actions', visible: true, order: 16 }
 ];
+
+// Preset view configurations
+const PRESET_VIEWS = {
+    quick: {
+        name: 'Quick View',
+        description: 'Essential columns only',
+        columns: ['interest', 'company', 'title', 'status', 'deadline', 'coopCycle', 'actions']
+    },
+    full: {
+        name: 'Full View',
+        description: 'All columns visible',
+        columns: ['interest', 'company', 'title', 'status', 'datePosted', 'dateApplied', 'deadline', 
+                  'coopCycle', 'contactPerson', 'location', 'salary', 'resume', 
+                  'coverLetter', 'notes', 'actions']
+    }
+};
 
 // User preferences
 let userPreferences = {
@@ -31,9 +43,7 @@ let userPreferences = {
     dateFormat: 'numeric', // 'numeric', 'short', 'relative'
 };
 
-/**
- * Load user preferences from localStorage
- */
+// Load saved preferences
 function loadUserPreferences() {
     const saved = localStorage.getItem('userPreferences');
     if (saved) {
@@ -343,5 +353,24 @@ function initializeCustomizationSidebar() {
     loadUserPreferences();
     renderColumnsTab();
     renderFormattingTab();
+}
+
+/**
+ * Apply preset view (Quick or Full)
+ */
+function applyPresetView(presetName) {
+    const preset = PRESET_VIEWS[presetName];
+    if (!preset) return;
+    
+    // Update column visibility based on preset
+    userPreferences.columns.forEach(column => {
+        column.visible = preset.columns.includes(column.id);
+    });
+    
+    saveUserPreferences();
+    updateSpreadsheetTable();
+    
+    // Visual feedback
+    showNotification(`${preset.name} Applied!`, preset.description);
 }
 

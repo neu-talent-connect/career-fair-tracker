@@ -1,11 +1,6 @@
-/**
- * Inline Editing Module
- * Handles click-to-edit functionality for table cells
- */
+// Inline editing for spreadsheet cells
 
-/**
- * Make a field editable
- */
+// Make a cell editable
 function makeEditable(element, type, itemId, fieldName, currentValue) {
     element.classList.add('editable-field');
     element.setAttribute('data-type', type);
@@ -19,9 +14,7 @@ function makeEditable(element, type, itemId, fieldName, currentValue) {
     });
 }
 
-/**
- * Start editing a field
- */
+// Start editing when user clicks cell
 function startEdit(element) {
     if (element.classList.contains('editing')) return;
     

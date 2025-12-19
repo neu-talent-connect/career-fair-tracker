@@ -1,90 +1,43 @@
-# Job / Co-op Tracker
+Job Tracker for Co-op Apps
 
-A professional web application for Northeastern University students to track job and co-op applications, companies, contacts, follow-ups, and interviews. Built with modern vanilla HTML, CSS, and JavaScript.
+I built this during my co-op search because honestly NUWorks is kind of a mess and I wanted something simpler that actually worked the way I think about applications. It's basically a spreadsheet that saves to your browser so you don't need to set up any database or account.
 
-## ✨ Features
+What it does:
+- Track job applications with all the info you actually need (company, position, status, deadlines, etc)
+- Dashboard view that looks like a spreadsheet where you can click to edit any cell
+- Company and contact tracking for networking (super important at NEU)
+- Interview scheduler with prep notes
+- Follow-up reminders so you don't forget to reach out
+- Some email templates for the standard stuff
 
-### 🎯 Smart Application Tracking
-- **Application Templates**: Auto-fill forms for SWE, Data Science, Consulting, Design, Research, and Startup positions
-- **Interview Prep Checklists**: Automatically generated 8-step prep checklist when status = "Interview"
-- **Warm/Cold Tracking**: Link applications to network contacts - see which are "warm" (🔥) vs "cold" (❄️)
-- **Co-op Cycle Tracker**: Northeastern-specific cycle planning with urgency indicators (🔥 imminent, ⏰ upcoming)
+Features I added because they were useful:
+- Application templates that auto-fill common fields for SWE/data science/consulting roles
+- Color-coded deadlines so you can see what's urgent
+- Batch actions to update multiple apps at once (helpful after career fairs)
+- Co-op cycle tracking with NEU's spring/summer/fall cycles
+- You can link contacts to applications to see which ones are "warm" vs cold applications
+- Customizable columns - hide what you don't use
+- Different date formats (I like the relative one that shows "in 5 days")
 
-### 📊 Notion-Style Spreadsheet
-- **Drag-and-Drop Column Reordering**: Customize your view by dragging columns into your preferred order
-- **Show/Hide Columns**: Focus on what matters to you
-- **Inline Editing**: Click any cell to edit directly (with Today buttons for dates!)
-- **Date Format Options**: Choose numeric (11/25), short (Nov 25), or relative (in 5 days)
-- **Deadline Urgency Colors**: Visual priority system (🔴 red = urgent, 🟢 green = safe)
-- **Custom Filters**: By status, interest, cycle, with text search
-- **Batch Actions**: Update multiple applications at once
+Technical stuff:
+- Pure vanilla JavaScript, no frameworks
+- Everything is modular - split into separate files instead of one giant app.js
+- Uses localStorage for data persistence (nothing hits a server, all local)
+- Northeastern colors because why not
 
-### 📋 Core Functionality
-- **Companies**: Track companies from career fairs with interest levels and recruiter info
-- **Contacts**: Professional network database with relationship tracking
-- **Jobs**: Detailed applications with 15+ customizable fields
-- **Follow-ups**: Never miss a deadline or networking opportunity
-- **Interviews**: Schedule and track with integrated prep checklists
-- **Email Templates**: Professional templates for thank you notes and follow-ups
+How to use:
+Just open index.html in your browser. That's it.
 
-### ⚡ Quick Actions
-- **Today Buttons**: One-click date entry everywhere (forms AND spreadsheet cells)
-- **Template Quick-Fill**: Save 2-3 minutes per application
-- **Batch Operations**: Update 10+ applications in seconds
-- **Smart Sorting**: By any column, ascending or descending
+The code is split into modules:
+- data.js - handles data storage
+- dashboard.js - spreadsheet view
+- jobs.js, companies.js, contacts.js, interviews.js, followups.js - each tab's functionality  
+- customization.js - column settings and preferences
+- features.js - templates, checklists, co-op cycle stuff
+- helpers.js - utility functions
+- editing.js - inline cell editing
+- batchActions.js - multi-select operations
+- analytics.js - pipeline visualization
 
-All data is stored locally in your browser using localStorage. No account or server needed - your data never leaves your device.
-
-## 🎓 Built for Northeastern Students
-
-This tracker is specifically designed for the Northeastern co-op experience:
-
-- **Co-op Cycles**: Track Spring, Summer, Fall cycles
-- **Networking Focus**: Differentiate warm vs cold applications (networking is key!)
-- **Template Library**: Pre-configured for common NEU co-op positions
-- **Career Fair Ready**: Batch entry for when you meet 20+ companies
-- **Interview Prep**: Built-in checklist for busy students juggling classes + recruiting
-
-## 💻 Usage
-
-Simply open `index.html` in your browser or visit the GitHub Pages deployment.
-
-**Tips:**
-- Use **Application Templates** to quick-fill common job types
-- Click any spreadsheet cell to edit (including dates with Today buttons!)
-- Drag columns in **Customize View** to reorder them
-- Link contacts to jobs to track warm vs cold applications
-- Interview status auto-creates a prep checklist
-
-## 🏗️ Architecture
-
-This project uses a **professional modular architecture** for maintainability:
-
-- **13 focused modules** instead of one monolithic file
-- Clear separation of concerns (data, UI, editing, features)
-- Each module has a single responsibility
-- Clean, documented, and testable code
-- Easy to extend with new features
-
-### Module Overview
-- `data.js` - State management
-- `features.js` - Templates, checklists, cycles, networking
-- `customization.js` - Column customization & drag-drop
-- `dashboard.js` - Spreadsheet view
-- `jobs.js`, `companies.js`, `contacts.js`, etc. - Tab-specific logic
-
-See `/js/README.md` for full architecture documentation.
-
-## 📚 Documentation
-
-- **NEW_FEATURES_GUIDE.md** - Comprehensive guide with workflows and pro tips
-- **js/README.md** - Technical architecture documentation
-
-## 🎨 Design
-
-- **Modern & Clean**: Apple-inspired aesthetics with refined typography
-- **Professional**: Suitable for showing to employers or advisors
-- **Northeastern Branding**: Official red (#C8102E), black, and warm gray colors
-- **Accessible**: High contrast, clear labels, keyboard navigation
-- **Mobile-Responsive**: Works on all screen sizes
+Mobile responsive and works offline since it's all client-side.
 

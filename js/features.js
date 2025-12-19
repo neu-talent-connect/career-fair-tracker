@@ -1,11 +1,6 @@
-/**
- * Advanced Features Module
- * Application templates, interview checklists, co-op cycles, networking
- */
+// Features: templates, interview checklists, co-op cycles, networking
 
-// ============================================
-// APPLICATION TEMPLATES
-// ============================================
+// Application templates for quick-filling common job types
 
 const JOB_TEMPLATES = {
     swe: {
@@ -64,9 +59,7 @@ const JOB_TEMPLATES = {
     }
 };
 
-/**
- * Apply job template
- */
+// Apply a template to the job form
 function applyJobTemplate(templateKey) {
     const template = JOB_TEMPLATES[templateKey];
     if (!template) return;
