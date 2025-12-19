@@ -1,6 +1,6 @@
 // Column customization - show/hide columns and change date formats
 
-// Default columns
+// Default columns - simplified for beginners
 const DEFAULT_COLUMNS = [
     { id: 'interest', name: 'Interest', visible: true, order: 0 },
     { id: 'company', name: 'Company', visible: true, order: 1 },
@@ -9,7 +9,7 @@ const DEFAULT_COLUMNS = [
     { id: 'datePosted', name: 'Date Posted', visible: false, order: 4 },
     { id: 'dateApplied', name: 'Date Applied', visible: true, order: 5 },
     { id: 'deadline', name: 'Deadline', visible: true, order: 6 },
-    { id: 'coopCycle', name: 'Co-op Cycle', visible: true, order: 7 },
+    { id: 'applicationCycle', name: 'Application Cycle', visible: false, order: 7 },
     { id: 'contactPerson', name: 'Contact', visible: false, order: 8 },
     { id: 'contactEmail', name: 'Email', visible: false, order: 9 },
     { id: 'contactPhone', name: 'Phone', visible: false, order: 10 },
@@ -26,13 +26,13 @@ const PRESET_VIEWS = {
     quick: {
         name: 'Quick View',
         description: 'Essential columns only',
-        columns: ['interest', 'company', 'title', 'status', 'deadline', 'coopCycle', 'actions']
+        columns: ['interest', 'company', 'title', 'status', 'deadline', 'actions']
     },
     full: {
         name: 'Full View',
         description: 'All columns visible',
         columns: ['interest', 'company', 'title', 'status', 'datePosted', 'dateApplied', 'deadline', 
-                  'coopCycle', 'contactPerson', 'location', 'salary', 'resume', 
+                  'applicationCycle', 'contactPerson', 'location', 'salary', 'resume', 
                   'coverLetter', 'notes', 'actions']
     }
 };

@@ -21,19 +21,13 @@ function addJob() {
         resume: document.getElementById('jobResume')?.value || '',
         coverLetter: document.getElementById('jobCoverLetter')?.value || '',
         notes: document.getElementById('jobNotes')?.value.trim() || '',
-        coopCycle: document.getElementById('jobCoopCycle')?.value || '',
-        linkedContactId: document.getElementById('jobContactLink')?.value || null,
+        applicationCycle: document.getElementById('jobApplicationCycle')?.value || '',
         dateAdded: new Date().toISOString()
     };
     
     if (!job.company || !job.title) {
         alert('Please enter company and position title');
         return;
-    }
-    
-    // If status is Interview, initialize checklist
-    if (job.status === 'Interview') {
-        job.interviewChecklist = JSON.parse(JSON.stringify(DEFAULT_INTERVIEW_CHECKLIST));
     }
     
     data.jobs.push(job);
@@ -48,18 +42,13 @@ function addJob() {
  */
 function populateJobFormDropdowns() {
     // Populate co-op cycles
-    const coopCycleSelect = document.getElementById('jobCoopCycle');
-    if (coopCycleSelect) {
-        const cycles = getCoopCycles();
-        coopCycleSelect.innerHTML = '<option value="">Not applicable</option>' +
+    const applicationCycleSelect = document.getElementById('jobApplicationCycle');
+    if (applicationCycleSelect) {
+        const cycles = getApplicationCycles();
+        applicationCycleSelect.innerHTML = '<option value="">Not applicable</option>' +
             cycles.map(cycle => `<option value="${cycle}">${cycle}</option>`).join('');
     }
     
-    // Populate contact links
-    const contactLinkSelect = document.getElementById('jobContactLink');
-    if (contactLinkSelect) {
-        contactLinkSelect.innerHTML = getContactsDropdownHTML();
-    }
 }
 
 /**
@@ -81,9 +70,7 @@ function clearJobForm() {
     if (document.getElementById('jobCoverLetter')) document.getElementById('jobCoverLetter').value = 'None';
     if (document.getElementById('jobNotes')) document.getElementById('jobNotes').value = '';
     if (document.getElementById('jobDatePosted')) document.getElementById('jobDatePosted').value = '';
-    if (document.getElementById('jobTemplate')) document.getElementById('jobTemplate').value = '';
-    if (document.getElementById('jobCoopCycle')) document.getElementById('jobCoopCycle').value = '';
-    if (document.getElementById('jobContactLink')) document.getElementById('jobContactLink').value = '';
+    if (document.getElementById('jobApplicationCycle')) document.getElementById('jobApplicationCycle').value = '';
 }
 
 /**
@@ -97,9 +84,6 @@ function updateJobsTable() {
     }
     
     tbody.innerHTML = data.jobs.map(job => {
-        const linkedContact = getLinkedContact(job.id);
-        const cycleProximity = getCycleProximity(job.coopCycle);
-        
         return `
         <tr>
             <td><span class="editable-field" data-type="jobs" data-item-id="${job.id}" data-field="interest" data-original-value="${job.interest || ''}"><span class="interest-badge interest-${job.interest}">${job.interest}</span></span></td>
@@ -109,41 +93,15 @@ function updateJobsTable() {
             <td><span class="editable-field" data-type="jobs" data-item-id="${job.id}" data-field="status" data-original-value="${job.status || ''}"><span class="status-badge status-${job.status.toLowerCase().replace(' ', '')}">${job.status}</span></span></td>
             <td><span class="editable-field" data-type="jobs" data-item-id="${job.id}" data-field="dateApplied" data-original-value="${job.dateApplied || ''}">${job.dateApplied || '-'}</span></td>
             <td><span class="editable-field" data-type="jobs" data-item-id="${job.id}" data-field="deadline" data-original-value="${job.deadline || ''}">${job.deadline || '-'}</span></td>
-            <td>${job.coopCycle || '-'} ${cycleProximity === 'imminent' ? '🔥' : cycleProximity === 'upcoming' ? '⏰' : ''}</td>
+            <td>${job.applicationCycle || '-'}</td>
             <td><span class="editable-field" data-type="jobs" data-item-id="${job.id}" data-field="salary" data-original-value="${job.salary || ''}">${job.salary || '-'}</span></td>
             <td>
                 <div class="action-buttons">
                     ${job.url ? `<a href="${job.url}" target="_blank" class="icon-btn">🔗</a>` : ''}
-                    ${job.interviewChecklist ? `<button class="icon-btn" onclick="showInterviewChecklist(${job.id})" title="Prep Checklist">📋</button>` : ''}
                     <button class="icon-btn" onclick="deleteItem('jobs', ${job.id})">🗑️</button>
                 </div>
             </td>
         </tr>
-        ${job.interviewChecklist ? `
-        <tr class="expanded-details show" id="checklist-${job.id}">
-            <td colspan="10" class="details-cell" style="background: #fafbfc;">
-                <div style="padding: 16px;">
-                    <h4 style="margin-bottom: 12px; color: var(--northeastern-red); font-size: 14px; font-weight: 600;">📋 Interview Prep Checklist</h4>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 8px;">
-                        ${job.interviewChecklist.map(item => `
-                            <label style="display: flex; align-items: center; padding: 8px; background: white; border-radius: 6px; cursor: pointer; transition: all 0.2s ease;" 
-                                onmouseover="this.style.background='#f5f5f5'" 
-                                onmouseout="this.style.background='white'">
-                                <input type="checkbox" 
-                                    ${item.completed ? 'checked' : ''} 
-                                    onchange="toggleChecklistItem(${job.id}, ${item.id})"
-                                    style="margin-right: 10px; width: 16px; height: 16px; cursor: pointer;">
-                                <span style="font-size: 13px; color: #333; ${item.completed ? 'text-decoration: line-through; opacity: 0.6;' : ''}">${item.task}</span>
-                            </label>
-                        `).join('')}
-                    </div>
-                    <div style="margin-top: 12px; font-size: 12px; color: #666;">
-                        ${job.interviewChecklist.filter(i => i.completed).length} / ${job.interviewChecklist.length} completed
-                    </div>
-                </div>
-            </td>
-        </tr>
-        ` : ''}
     `}).join('');
     
     // Make fields editable
@@ -152,13 +110,4 @@ function updateJobsTable() {
     });
 }
 
-/**
- * Show/hide interview checklist
- */
-function showInterviewChecklist(jobId) {
-    const checklistRow = document.getElementById(`checklist-${jobId}`);
-    if (checklistRow) {
-        checklistRow.classList.toggle('show');
-    }
-}
 

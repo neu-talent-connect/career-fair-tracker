@@ -61,3 +61,56 @@ function checkGettingStartedBanner() {
     }
 }
 
+// Export applications to CSV
+function exportToCSV() {
+    if (data.jobs.length === 0) {
+        alert('No applications to export yet!');
+        return;
+    }
+    
+    // CSV headers
+    const headers = ['Company', 'Position', 'Status', 'Interest', 'Date Applied', 'Deadline', 
+                     'Application Cycle', 'Location', 'Salary', 'Contact Person', 'Contact Email', 
+                     'Contact Phone', 'Resume', 'Cover Letter', 'Job URL', 'Notes'];
+    
+    // Build CSV content
+    let csvContent = headers.join(',') + '\n';
+    
+    data.jobs.forEach(job => {
+        const row = [
+            `"${job.company || ''}"`,
+            `"${job.title || ''}"`,
+            `"${job.status || ''}"`,
+            job.interest || '',
+            job.dateApplied || '',
+            job.deadline || '',
+            `"${job.applicationCycle || ''}"`,
+            `"${job.location || ''}"`,
+            `"${job.salary || ''}"`,
+            `"${job.contactPerson || ''}"`,
+            `"${job.contactEmail || ''}"`,
+            `"${job.contactPhone || ''}"`,
+            `"${job.resume || ''}"`,
+            `"${job.coverLetter || ''}"`,
+            `"${job.url || ''}"`,
+            `"${(job.notes || '').replace(/"/g, '""')}"` // Escape quotes in notes
+        ];
+        csvContent += row.join(',') + '\n';
+    });
+    
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    
+    link.setAttribute('href', url);
+    link.setAttribute('download', `job-applications-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    alert(`✓ Exported ${data.jobs.length} applications to CSV`);
+}
+

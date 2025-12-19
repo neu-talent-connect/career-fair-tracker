@@ -1,43 +1,45 @@
-Job Tracker for Co-op Apps
+Job Application Tracker
 
-I built this during my co-op search because honestly NUWorks is kind of a mess and I wanted something simpler that actually worked the way I think about applications. It's basically a spreadsheet that saves to your browser so you don't need to set up any database or account.
+A simple job application tracker built for students who need an easier way to organize their job search. Created from a workshop idea to help beginners who don't know where to start or just want an alternative to building a Google spreadsheet from scratch.
 
 What it does:
-- Track job applications with all the info you actually need (company, position, status, deadlines, etc)
-- Dashboard view that looks like a spreadsheet where you can click to edit any cell
-- Company and contact tracking for networking (super important at NEU)
-- Interview scheduler with prep notes
+Track everything in one place - job applications, companies from career fairs, networking contacts, and follow-up reminders.
+
+Main Features:
+- Spreadsheet dashboard where you can click any cell to edit
+- Add applications with a simple form (basic fields shown by default, more fields available if needed)
+- Career fair tracker for companies you meet before applying
+- Contact manager for networking
 - Follow-up reminders so you don't forget to reach out
-- Some email templates for the standard stuff
+- Email templates for thank you notes and outreach
+- Export your data to CSV
+- Load sample data to see how it works
 
-Features I added because they were useful:
-- Application templates that auto-fill common fields for SWE/data science/consulting roles
-- Color-coded deadlines so you can see what's urgent
-- Batch actions to update multiple apps at once (helpful after career fairs)
-- Co-op cycle tracking with NEU's spring/summer/fall cycles
-- You can link contacts to applications to see which ones are "warm" vs cold applications
-- Customizable columns - hide what you don't use
-- Different date formats (I like the relative one that shows "in 5 days")
+Built for beginners:
+- Shows only 7 essential columns by default (Company, Position, Status, Interest, Deadline, Applied Date, Notes)
+- Advanced fields are hidden but available with one click
+- "Today" buttons on all date fields for quick entry
+- Works offline - everything saves in your browser
+- No account or setup needed
 
-Technical stuff:
-- Pure vanilla JavaScript, no frameworks
-- Everything is modular - split into separate files instead of one giant app.js
-- Uses localStorage for data persistence (nothing hits a server, all local)
-- Northeastern colors because why not
-
-How to use:
-Just open index.html in your browser. That's it.
-
-The code is split into modules:
+Technical:
+Pure vanilla JavaScript, no frameworks. Split into focused modules for clean code:
 - data.js - handles data storage
 - dashboard.js - spreadsheet view
-- jobs.js, companies.js, contacts.js, interviews.js, followups.js - each tab's functionality  
+- jobs.js, companies.js, contacts.js, followups.js, interviews.js - each feature
 - customization.js - column settings and preferences
-- features.js - templates, checklists, co-op cycle stuff
-- helpers.js - utility functions
+- features.js - application cycles and utilities
+- helpers.js - utility functions like CSV export
 - editing.js - inline cell editing
 - batchActions.js - multi-select operations
-- analytics.js - pipeline visualization
 
-Mobile responsive and works offline since it's all client-side.
+How to use:
+Open index.html in your browser. Click "Load Sample Data" to see examples, or go to Applications tab to add your first job.
 
+Customization:
+- Click "Customize View" to show/hide columns
+- Drag columns to reorder them
+- Choose between numeric, short, or relative date formats
+- Use "Quick View" for minimal columns or "Full View" for everything
+
+Mobile responsive and works on all modern browsers.

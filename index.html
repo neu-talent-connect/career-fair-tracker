@@ -3,50 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="A comprehensive job and co-op tracking system for managing companies, contacts, applications, follow-ups, and interviews.">
-    <title>Job / Co-op Tracker - Northeastern University</title>
+    <meta name="description" content="Simple job application tracker for students. Track companies from career fairs, manage applications, contacts, and follow-ups in one place.">
+    <title>Job Application Tracker</title>
     <link rel="stylesheet" href="css/styles.css">
-    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <div>
-                <h1>Job / Co-op Tracker</h1>
-                <p>Northeastern University</p>
+                <h1>Job Application Tracker</h1>
+                <p>Track your job search in one simple spreadsheet</p>
             </div>
         </div>
         
         <div class="tabs">
-            <button class="tab active" onclick="switchTab('dashboard')" title="Master spreadsheet view - click cells to edit">📊 Dashboard</button>
-            <button class="tab" onclick="switchTab('companies')" title="Track companies from career fairs">🏢 Companies</button>
-            <button class="tab" onclick="switchTab('contacts')" title="Your professional network">👥 Contacts</button>
-            <button class="tab" onclick="switchTab('jobs')" title="Detailed forms for job applications">💼 Jobs</button>
-            <button class="tab" onclick="switchTab('followup')" title="Follow-up tasks and reminders">📅 Follow-Up</button>
-            <button class="tab" onclick="switchTab('interviews')" title="Interview schedule and prep">🎤 Interviews</button>
-            <button class="tab" onclick="switchTab('templates')" title="Email templates">📝 Templates</button>
+            <button class="tab active" onclick="switchTab('dashboard')" title="Your main view - click cells to edit">📊 Dashboard</button>
+            <button class="tab" onclick="switchTab('careerfairs')" title="Track companies you meet before applying">🎪 Career Fairs</button>
+            <button class="tab" onclick="switchTab('applications')" title="Add detailed job applications">💼 Applications</button>
+            <button class="tab" onclick="switchTab('networking')" title="Manage contacts and follow-up reminders">👥 Networking</button>
+            <button class="tab" onclick="switchTab('resources')" title="Email templates and tips">📝 Resources</button>
         </div>
         
-        <!-- Dashboard Tab - Master Spreadsheet -->
+        <!-- Dashboard Tab -->
         <div id="dashboard" class="tab-content active">
             <!-- Getting Started Banner -->
             <div id="gettingStartedBanner" class="getting-started-banner" style="display: none;">
                 <div style="flex: 1;">
-                    <h3 style="margin: 0 0 8px 0; font-size: 16px; color: var(--northeastern-red);">👋 Welcome to Job / Co-op Tracker!</h3>
+                    <h3 style="margin: 0 0 8px 0; font-size: 16px; color: var(--northeastern-red);">Welcome! Not sure where to start?</h3>
                     <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.5;">
-                        <strong>Not sure where to start?</strong><br>
-                        1️⃣ Go to <strong>Jobs tab</strong> to add your first application (use a template!)<br>
-                        2️⃣ Come back here to see it in the spreadsheet<br>
-                        3️⃣ Click <strong>⚡ Quick View</strong> to show fewer columns<br>
-                        4️⃣ Filter by <strong>Co-op Cycle</strong> to focus on what's relevant now
+                        <strong>Try this:</strong><br>
+                        1. Click <strong>Load Sample Data</strong> to see how it works<br>
+                        2. Or go to <strong>Applications tab</strong> to add your first job<br>
+                        3. Click any cell here to edit it directly
                     </p>
                 </div>
                 <button onclick="dismissGettingStarted()" style="background: none; border: none; font-size: 24px; color: #999; cursor: pointer; padding: 0; margin-left: 20px;">×</button>
             </div>
             
-            <h2>All Applications (Spreadsheet)</h2>
+            <h2>Your Applications</h2>
             <p style="color: #666; font-size: 14px; margin-top: -8px; margin-bottom: 20px;">
-                💡 <strong>Quick Start:</strong> Click any cell to edit | Use <strong>Jobs tab</strong> for detailed forms | Click ⚙️ <strong>Customize View</strong> to show/hide columns
+                Your main view. Click any cell to edit.
             </p>
             
             <!-- Stats Overview -->
@@ -73,9 +69,12 @@
             <div class="filters-section">
                 <div class="filters-header">
                     <h3>Filters</h3>
-                    <div style="display: flex; gap: 12px;">
-                        <button class="btn btn-secondary" onclick="showAnalytics()" style="font-size: 13px; padding: 8px 14px; display: flex; align-items: center; gap: 6px;">
-                            <span>📊</span> Analytics
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                        <button class="btn btn-secondary" onclick="loadSampleData()" style="font-size: 13px; padding: 8px 14px;">
+                            📝 Load Sample Data
+                        </button>
+                        <button class="btn btn-secondary" onclick="exportToCSV()" style="font-size: 13px; padding: 8px 14px;">
+                            💾 Export CSV
                         </button>
                         <button class="btn btn-secondary" onclick="applyPresetView('quick')" style="font-size: 13px; padding: 8px 14px;">
                             ⚡ Quick View
@@ -91,8 +90,8 @@
                     </div>
                 </div>
                 <div class="filters-grid">
-                    <select id="filterCoopCycle" style="font-weight: 500; border-color: var(--northeastern-red); color: var(--northeastern-red);">
-                        <option value="">All Co-op Cycles</option>
+                    <select id="filterApplicationCycle">
+                        <option value="">All Application Cycles</option>
                     </select>
                     <select id="filterStatus">
                         <option value="">All Status</option>
@@ -152,14 +151,14 @@
             </div>
         </div>
         
-        <!-- Companies Tab -->
-        <div id="companies" class="tab-content">
-            <h2>Company Tracker</h2>
+        <!-- Career Fairs Tab -->
+        <div id="careerfairs" class="tab-content">
+            <h2>Career Fair Tracker</h2>
             <p style="color: #666; font-size: 14px; margin-top: -8px; margin-bottom: 20px;">
-                🏢 Track companies from career fairs before you're ready to apply.
+                Track companies you meet at career fairs before applying.
             </p>
             <div class="form-section">
-                <h3>Add New Company</h3>
+                <h3>Add Company from Career Fair</h3>
                 <div class="form-grid">
                     <div class="form-group">
                         <label>Company Name*</label>
@@ -254,12 +253,14 @@
             </div>
         </div>
         
-        <!-- Contacts Tab -->
-        <div id="contacts" class="tab-content">
-            <h2>Contact Manager</h2>
+        <!-- Networking Tab -->
+        <div id="networking" class="tab-content">
+            <h2>Networking</h2>
             <p style="color: #666; font-size: 14px; margin-top: -8px; margin-bottom: 20px;">
-                👥 Save recruiters and professionals you meet. Link them to applications to mark them as "warm".
+                Manage contacts and follow-up reminders in one place.
             </p>
+            
+            <h3 style="margin-top: 24px;">Contacts</h3>
             <div class="form-section">
                 <h3>Add New Contact</h3>
                 <div class="form-grid">
@@ -340,32 +341,85 @@
                     </tbody>
                 </table>
             </div>
+            
+            <h3 style="margin-top: 40px;">Follow-Up Reminders</h3>
+            <div class="form-section">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Company*</label>
+                        <input type="text" id="followupCompany" placeholder="e.g., Meta">
+                    </div>
+                    <div class="form-group">
+                        <label>Contact Person</label>
+                        <input type="text" id="followupContact" placeholder="e.g., Sarah Johnson">
+                    </div>
+                    <div class="form-group">
+                        <label>Task Type</label>
+                        <select id="followupType">
+                            <option value="Thank You">Thank You Email</option>
+                            <option value="Check-in">Check-in</option>
+                            <option value="Application Status">Application Status</option>
+                            <option value="LinkedIn Connection">LinkedIn Connection</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date*</label>
+                        <div class="date-input-wrapper">
+                            <input type="date" id="followupDate">
+                            <button type="button" class="quick-date-btn" onclick="setToday('followupDate')">Today</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Priority</label>
+                        <select id="followupPriority">
+                            <option value="High">High</option>
+                            <option value="Medium">Medium</option>
+                            <option value="Low">Low</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="followupStatus">
+                            <option value="Pending">Pending</option>
+                            <option value="Completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn" onclick="addFollowUp()">Add Follow-Up</button>
+            </div>
+            
+            <div style="overflow-x: auto;">
+                <table id="followupTable">
+                    <thead>
+                        <tr>
+                            <th>Due Date</th>
+                            <th>Company</th>
+                            <th>Contact</th>
+                            <th>Type</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="followupTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 40px; color: #6c757d;">
+                                No follow-ups scheduled yet.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
         
-        <!-- Jobs Tab -->
-        <div id="jobs" class="tab-content">
-            <h2>Job Applications (Detailed Forms)</h2>
+        <!-- Applications Tab -->
+        <div id="applications" class="tab-content">
+            <h2>Add Job Application</h2>
             <p style="color: #666; font-size: 14px; margin-top: -8px; margin-bottom: 20px;">
-                💼 Add applications here with detailed forms. They'll automatically appear in the Dashboard spreadsheet.
+                Add detailed job applications here. They'll appear in the Dashboard spreadsheet.
             </p>
             <div class="form-section">
-                <h3>Add New Job Application</h3>
-                
-                <!-- Quick Template Selector -->
-                <div style="margin-bottom: 20px; padding: 16px; background: #fafbfc; border-radius: 8px; border: 1px solid #e5e7eb;">
-                    <label style="display: block; margin-bottom: 8px; font-weight: 600; font-size: 14px; color: #333;">
-                        🎯 Quick Template (Optional)
-                    </label>
-                    <select id="jobTemplate" onchange="applyJobTemplate(this.value)" style="width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 8px; font-size: 14px;">
-                        <option value="">-- Choose a template to auto-fill --</option>
-                        <option value="swe">Software Engineering Co-op</option>
-                        <option value="data">Data Science Co-op</option>
-                        <option value="consulting">Consulting Co-op</option>
-                        <option value="design">UX/Design Co-op</option>
-                        <option value="research">Research Position</option>
-                        <option value="startup">Startup Position</option>
-                    </select>
-                </div>
+                <h3>Basic Information</h3>
                 
                 <div class="form-grid">
                     <div class="form-group">
@@ -375,14 +429,6 @@
                     <div class="form-group">
                         <label>Position Title*</label>
                         <input type="text" id="jobTitle" placeholder="e.g., Data Analyst Co-op">
-                    </div>
-                    <div class="form-group">
-                        <label>Job ID/Req Number</label>
-                        <input type="text" id="jobId" placeholder="e.g., REQ-2025-1234">
-                    </div>
-                    <div class="form-group">
-                        <label>Location</label>
-                        <input type="text" id="jobLocation" placeholder="e.g., Boston, MA (Hybrid)">
                     </div>
                     <div class="form-group">
                         <label>Application Status</label>
@@ -397,7 +443,7 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Interest Level (1-5)</label>
+                        <label>Interest Level</label>
                         <select id="jobInterest">
                             <option value="5">5 - Dream Job</option>
                             <option value="4">4 - Very Interested</option>
@@ -407,25 +453,6 @@
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Co-op Cycle</label>
-                        <select id="jobCoopCycle">
-                            <option value="">Not applicable</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Linked Contact (Warm Application?)</label>
-                        <select id="jobContactLink">
-                            <option value="">No contact (Cold)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Date Posted</label>
-                        <div class="date-input-wrapper">
-                            <input type="date" id="jobDatePosted">
-                            <button type="button" class="quick-date-btn" onclick="setToday('jobDatePosted')">Today</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
                         <label>Date Applied</label>
                         <div class="date-input-wrapper">
                             <input type="date" id="jobDateApplied">
@@ -433,58 +460,88 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label>Application Deadline</label>
+                        <label>Deadline</label>
                         <div class="date-input-wrapper">
                             <input type="date" id="jobDeadline">
                             <button type="button" class="quick-date-btn" onclick="setToday('jobDeadline')">Today</button>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label>Contact Person</label>
-                        <input type="text" id="jobContact" placeholder="e.g., Jane Smith">
-                    </div>
-                    <div class="form-group">
-                        <label>Contact Email</label>
-                        <input type="email" id="jobContactEmail" placeholder="jane.smith@company.com">
-                    </div>
-                    <div class="form-group">
-                        <label>Contact Phone</label>
-                        <input type="tel" id="jobContactPhone" placeholder="(555) 123-4567">
-                    </div>
-                    <div class="form-group">
-                        <label>Salary Range</label>
-                        <input type="text" id="jobSalary" placeholder="e.g., $25-30/hour">
-                    </div>
-                    <div class="form-group">
-                        <label>Resume Version</label>
-                        <select id="jobResume">
-                            <option value="None">None</option>
-                            <option value="Standard">Standard</option>
-                            <option value="Tailored">Tailored</option>
-                            <option value="Version 1">Version 1</option>
-                            <option value="Version 2">Version 2</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Cover Letter</label>
-                        <select id="jobCoverLetter">
-                            <option value="None">None</option>
-                            <option value="Required">Required</option>
-                            <option value="Optional">Optional</option>
-                            <option value="Submitted">Submitted</option>
-                            <option value="Not Needed">Not Needed</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Job Posting URL</label>
-                        <input type="url" id="jobUrl" placeholder="https://...">
-                    </div>
                 </div>
                 <div class="form-group">
                     <label>Notes</label>
-                    <textarea id="jobNotes" placeholder="Additional notes, requirements, deadlines, etc."></textarea>
+                    <textarea id="jobNotes" placeholder="Any additional info..."></textarea>
                 </div>
-                <button class="btn" onclick="addJob()">Add Job Application</button>
+                
+                <!-- Show More Fields Button -->
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('advancedFields').style.display = document.getElementById('advancedFields').style.display === 'none' ? 'block' : 'none'" style="margin-bottom: 16px;">
+                    + Show More Fields
+                </button>
+                
+                <!-- Advanced Fields (Hidden by Default) -->
+                <div id="advancedFields" style="display: none;">
+                    <h3 style="margin-top: 20px; margin-bottom: 16px;">Additional Details</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Job ID/Req Number</label>
+                            <input type="text" id="jobId" placeholder="e.g., REQ-2025-1234">
+                        </div>
+                        <div class="form-group">
+                            <label>Location</label>
+                            <input type="text" id="jobLocation" placeholder="e.g., Boston, MA">
+                        </div>
+                        <div class="form-group">
+                            <label>Salary Range</label>
+                            <input type="text" id="jobSalary" placeholder="e.g., $25-30/hour">
+                        </div>
+                        <div class="form-group">
+                            <label>Application Cycle</label>
+                            <select id="jobApplicationCycle">
+                                <option value="">Not applicable</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Date Posted</label>
+                            <div class="date-input-wrapper">
+                                <input type="date" id="jobDatePosted">
+                                <button type="button" class="quick-date-btn" onclick="setToday('jobDatePosted')">Today</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Person</label>
+                            <input type="text" id="jobContact" placeholder="e.g., Jane Smith">
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Email</label>
+                            <input type="email" id="jobContactEmail" placeholder="jane@company.com">
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Phone</label>
+                            <input type="tel" id="jobContactPhone" placeholder="(555) 123-4567">
+                        </div>
+                        <div class="form-group">
+                            <label>Resume Version</label>
+                            <select id="jobResume">
+                                <option value="None">None</option>
+                                <option value="Standard">Standard</option>
+                                <option value="Tailored">Tailored</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cover Letter</label>
+                            <select id="jobCoverLetter">
+                                <option value="None">None</option>
+                                <option value="Required">Required</option>
+                                <option value="Submitted">Submitted</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Job Posting URL</label>
+                            <input type="url" id="jobUrl" placeholder="https://...">
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="addJob()">Add Application</button>
             </div>
             
             <div style="overflow-x: auto;">
@@ -514,164 +571,13 @@
             </div>
         </div>
         
-        <!-- Follow-Up Tab -->
-        <div id="followup" class="tab-content">
-            <h2>Follow-Up Tracker</h2>
-            <p style="color: #666; font-size: 14px; margin-top: -8px; margin-bottom: 20px;">
-                📅 Schedule follow-up emails, networking check-ins, and other reminders.
-            </p>
-            <div class="form-section">
-                <h3>Add Follow-Up Task</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Company*</label>
-                        <input type="text" id="followupCompany" placeholder="e.g., Meta">
-                    </div>
-                    <div class="form-group">
-                        <label>Contact Person</label>
-                        <input type="text" id="followupContact" placeholder="e.g., Sarah Johnson">
-                    </div>
-                    <div class="form-group">
-                        <label>Follow-Up Type</label>
-                        <select id="followupType">
-                            <option value="Thank You">Thank You Email</option>
-                            <option value="Check-in">Check-in</option>
-                            <option value="Application Status">Application Status</option>
-                            <option value="Information Request">Information Request</option>
-                            <option value="LinkedIn Connection">LinkedIn Connection</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Due Date*</label>
-                        <div class="date-input-wrapper">
-                            <input type="date" id="followupDate">
-                            <button type="button" class="quick-date-btn" onclick="setToday('followupDate')">Today</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Priority</label>
-                        <select id="followupPriority">
-                            <option value="High">High</option>
-                            <option value="Medium">Medium</option>
-                            <option value="Low">Low</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="followupStatus">
-                            <option value="Pending">Pending</option>
-                            <option value="Completed">Completed</option>
-                            <option value="No Response">No Response</option>
-                        </select>
-                    </div>
-                </div>
-                <button class="btn" onclick="addFollowUp()">Add Follow-Up</button>
-            </div>
-            
-            <div style="overflow-x: auto;">
-                <table id="followupTable">
-                    <thead>
-                        <tr>
-                            <th>Due Date</th>
-                            <th>Company</th>
-                            <th>Contact</th>
-                            <th>Type</th>
-                            <th>Priority</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="followupTableBody">
-                        <tr>
-                            <td colspan="7" style="text-align: center; padding: 40px; color: #6c757d;">
-                                No follow-ups scheduled. Remember to follow up within 48 hours!
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
         
-        <!-- Interviews Tab -->
-        <div id="interviews" class="tab-content">
-            <h2>Interview Preparation</h2>
+        <!-- Resources Tab -->
+        <div id="resources" class="tab-content">
+            <h2>Email Templates</h2>
             <p style="color: #666; font-size: 14px; margin-top: -8px; margin-bottom: 20px;">
-                🎤 Schedule interviews and store prep notes. Checklists auto-create when you mark a job as "Interview" status.
+                Copy these professional email templates for your job search.
             </p>
-            <div class="form-section">
-                <h3>Schedule Interview</h3>
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Company*</label>
-                        <input type="text" id="interviewCompany" placeholder="e.g., Spotify">
-                    </div>
-                    <div class="form-group">
-                        <label>Position</label>
-                        <input type="text" id="interviewPosition" placeholder="e.g., UX Design Co-op">
-                    </div>
-                    <div class="form-group">
-                        <label>Interview Date*</label>
-                        <div class="date-input-wrapper">
-                            <input type="datetime-local" id="interviewDate">
-                            <button type="button" class="quick-date-btn" onclick="setTodayTime('interviewDate')">Now</button>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Interview Type</label>
-                        <select id="interviewType">
-                            <option value="Phone Screen">Phone Screen</option>
-                            <option value="Video">Video Interview</option>
-                            <option value="Technical">Technical Interview</option>
-                            <option value="Behavioral">Behavioral Interview</option>
-                            <option value="Panel">Panel Interview</option>
-                            <option value="On-site">On-site Interview</option>
-                            <option value="Final Round">Final Round</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Interviewer(s)</label>
-                        <input type="text" id="interviewers" placeholder="e.g., Tom Chen, Director of Engineering">
-                    </div>
-                    <div class="form-group">
-                        <label>Duration</label>
-                        <input type="text" id="interviewDuration" placeholder="e.g., 45 minutes">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label>Preparation Notes</label>
-                    <textarea id="interviewPrep" placeholder="Key points to remember, questions to ask, STAR stories to prepare..."></textarea>
-                </div>
-                <button class="btn" onclick="addInterview()">Add Interview</button>
-            </div>
-            
-            <div style="overflow-x: auto;">
-                <table id="interviewsTable">
-                    <thead>
-                        <tr>
-                            <th></th>
-                            <th>Date/Time</th>
-                            <th>Company</th>
-                            <th>Position</th>
-                            <th>Type</th>
-                            <th>Interviewer(s)</th>
-                            <th>Duration</th>
-                            <th>Prep Notes</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="interviewsTableBody">
-                        <tr>
-                            <td colspan="9" style="text-align: center; padding: 40px; color: #6c757d;">
-                                No interviews scheduled yet. Keep applying!
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-        
-        <!-- Templates Tab -->
-        <div id="templates" class="tab-content">
             <h2>Email Templates</h2>
             
             <div class="email-template">
@@ -789,35 +695,6 @@ Best regards,
         </div>
     </div>
     
-    <!-- Analytics Modal -->
-    <div id="analyticsModal" class="modal" style="display: none;">
-        <div class="modal-content" style="max-width: 900px; width: 90%;">
-            <div class="modal-header">
-                <h2>📊 Application Pipeline Analytics</h2>
-                <button onclick="closeAnalytics()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: #999; line-height: 1;">×</button>
-            </div>
-            <div class="modal-body">
-                <div id="sankeyChart" style="width: 100%; height: 500px;"></div>
-                <div style="margin-top: 20px; padding: 16px; background: #f9fafb; border-radius: 8px;">
-                    <h3 style="font-size: 16px; margin-bottom: 12px; color: var(--northeastern-black);">Key Metrics</h3>
-                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-                        <div>
-                            <div style="font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Interview Rate</div>
-                            <div style="font-size: 28px; font-weight: 600; color: var(--northeastern-red); margin-top: 4px;" id="interviewRate">-</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Offer Rate</div>
-                            <div style="font-size: 28px; font-weight: 600; color: var(--northeastern-red); margin-top: 4px;" id="offerRate">-</div>
-                        </div>
-                        <div>
-                            <div style="font-size: 12px; color: #666; text-transform: uppercase; letter-spacing: 0.5px;">Response Rate</div>
-                            <div style="font-size: 28px; font-weight: 600; color: var(--northeastern-red); margin-top: 4px;" id="responseRate">-</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
     
     <!-- Batch Actions Bar -->
     <div class="batch-actions-bar" id="batchActionsBar">
@@ -845,7 +722,6 @@ Best regards,
     <script src="js/followups.js"></script>
     <script src="js/interviews.js"></script>
     <script src="js/dashboard.js"></script>
-    <script src="js/analytics.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>

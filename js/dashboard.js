@@ -37,9 +37,6 @@ function updateSpreadsheetTable() {
     tbody.innerHTML = filteredJobs.map(job => {
         const visibleCols = getVisibleColumns();
         const deadlineUrgency = getDeadlineUrgency(job.deadline);
-        const linkedContact = getLinkedContact(job.id);
-        const isWarm = !!linkedContact;
-        const cycleProximity = getCycleProximity(job.coopCycle);
         
         const cellRenderers = {
             interest: () => `<span class="interest-badge interest-${job.interest}">${job.interest}</span>`,
@@ -49,10 +46,10 @@ function updateSpreadsheetTable() {
             datePosted: () => formatDate(job.datePosted),
             dateApplied: () => formatDate(job.dateApplied),
             deadline: () => `<span class="${deadlineUrgency}">${formatDate(job.deadline)}</span>`,
-            coopCycle: () => job.coopCycle ? `${job.coopCycle} ${cycleProximity === 'imminent' ? '🔥' : cycleProximity === 'upcoming' ? '⏰' : ''}` : '-',
-            contactPerson: () => job.contactPerson || (linkedContact ? linkedContact.name : '-'),
-            contactEmail: () => job.contactEmail ? `<a href="mailto:${job.contactEmail}">${job.contactEmail}</a>` : (linkedContact ? `<a href="mailto:${linkedContact.email}">${linkedContact.email}</a>` : '-'),
-            contactPhone: () => job.contactPhone || (linkedContact ? linkedContact.phone : '-'),
+            applicationCycle: () => job.applicationCycle || '-',
+            contactPerson: () => job.contactPerson || '-',
+            contactEmail: () => job.contactEmail ? `<a href="mailto:${job.contactEmail}">${job.contactEmail}</a>` : '-',
+            contactPhone: () => job.contactPhone || '-',
             location: () => job.location || '-',
             salary: () => job.salary || '-',
             resume: () => job.resume || 'None',
@@ -61,7 +58,6 @@ function updateSpreadsheetTable() {
             actions: () => `
                 <div class="action-buttons">
                     ${job.url ? `<a href="${job.url}" target="_blank" class="icon-btn" title="View Posting">🔗</a>` : ''}
-                    ${job.interviewChecklist ? `<span title="Has Interview Prep Checklist">📋</span>` : ''}
                     <button class="icon-btn" onclick="deleteItem('jobs', ${job.id})" title="Delete">🗑️</button>
                 </div>
             `
@@ -76,7 +72,7 @@ function updateSpreadsheetTable() {
                             col.id === 'contactPhone' ? 'tel' :
                             col.id.includes('date') || col.id === 'deadline' ? 'date' :
                             col.id === 'notes' ? 'textarea' :
-                            ['interest', 'status', 'resume', 'coverLetter', 'coopCycle'].includes(col.id) ? 'select' : 'text';
+                            ['interest', 'status', 'resume', 'coverLetter', 'applicationCycle'].includes(col.id) ? 'select' : 'text';
             return `<td class="spreadsheet-cell" onclick="editSpreadsheetCell(this, ${job.id}, '${col.id}', '${inputType}')">${cellRenderers[col.id]()}</td>`;
         }).join('');
         
@@ -220,7 +216,7 @@ function createSpreadsheetSelect(fieldName, currentValue) {
     
     let fieldOptions = [];
     
-    if (fieldName === 'coopCycle') {
+    if (fieldName === 'applicationCycle') {
         const cycles = getCoopCycles();
         fieldOptions = [
             {value: '', text: 'Not applicable'},
@@ -282,12 +278,12 @@ function getFilteredJobs() {
     const statusFilter = document.getElementById('filterStatus')?.value || '';
     const interestFilter = document.getElementById('filterInterest')?.value || '';
     const searchFilter = document.getElementById('filterSearch')?.value.toLowerCase() || '';
-    const coopCycleFilter = document.getElementById('filterCoopCycle')?.value || '';
+    const applicationCycleFilter = document.getElementById('filterApplicationCycle')?.value || '';
     
     let filtered = [...data.jobs];
     
-    if (coopCycleFilter) {
-        filtered = filtered.filter(job => job.coopCycle === coopCycleFilter);
+    if (applicationCycleFilter) {
+        filtered = filtered.filter(job => job.applicationCycle === applicationCycleFilter);
     }
     
     if (statusFilter) {
@@ -376,8 +372,7 @@ function addSpreadsheetRow() {
         salary: '',
         resume: 'None',
         coverLetter: 'None',
-        coopCycle: '',
-        linkedContactId: null,
+        applicationCycle: '',
         notes: '',
         url: '',
         dateAdded: new Date().toISOString()

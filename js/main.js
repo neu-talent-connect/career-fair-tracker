@@ -27,13 +27,13 @@ function switchTab(tabName) {
     }
 }
 
-// Populate filter dropdowns with co-op cycles
+// Populate filter dropdowns with application cycles
 function populateDashboardFilters() {
-    // Populate co-op cycle filter
-    const coopCycleFilter = document.getElementById('filterCoopCycle');
-    if (coopCycleFilter) {
-        const cycles = getCoopCycles();
-        coopCycleFilter.innerHTML = '<option value="">All Co-op Cycles</option>' +
+    // Populate application cycle filter
+    const applicationCycleFilter = document.getElementById('filterApplicationCycle');
+    if (applicationCycleFilter) {
+        const cycles = getApplicationCycles();
+        applicationCycleFilter.innerHTML = '<option value="">All Application Cycles</option>' +
             cycles.map(cycle => `<option value="${cycle}">${cycle}</option>`).join('');
     }
 }
