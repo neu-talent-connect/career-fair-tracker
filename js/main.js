@@ -5,7 +5,7 @@ document.addEventListener('DOMContentLoaded', function() {
     populateJobFormDropdowns();
     populateDashboardFilters();
     checkGettingStartedBanner();
-    console.log('Job / Co-op Tracker initialized successfully');
+    console.log('Job Application Tracker initialized');
 });
 
 // Repopulate dropdowns when switching to jobs tab (in case contacts were added)
@@ -16,8 +16,8 @@ function switchTab(tabName) {
     event.target.classList.add('active');
     document.getElementById(tabName).classList.add('active');
     
-    // Refresh dropdowns when opening jobs tab
-    if (tabName === 'jobs') {
+    // Refresh dropdowns when opening applications tab
+    if (tabName === 'applications') {
         populateJobFormDropdowns();
     }
     

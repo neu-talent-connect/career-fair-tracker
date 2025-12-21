@@ -49,6 +49,5 @@ function updateAllTables() {
     updateContactsTable();
     updateJobsTable();
     updateFollowUpsTable();
-    updateInterviewsTable();
 }
 

@@ -61,6 +61,14 @@ function checkGettingStartedBanner() {
     }
 }
 
+// Toggle advanced fields visibility
+function toggleAdvancedFields() {
+    const advancedFields = document.getElementById('advancedFields');
+    if (advancedFields) {
+        advancedFields.style.display = advancedFields.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
 // Export applications to CSV
 function exportToCSV() {
     if (data.jobs.length === 0) {

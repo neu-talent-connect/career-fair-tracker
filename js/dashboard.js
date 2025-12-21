@@ -217,7 +217,7 @@ function createSpreadsheetSelect(fieldName, currentValue) {
     let fieldOptions = [];
     
     if (fieldName === 'applicationCycle') {
-        const cycles = getCoopCycles();
+        const cycles = getApplicationCycles();
         fieldOptions = [
             {value: '', text: 'Not applicable'},
             ...cycles.map(cycle => ({value: cycle, text: cycle}))
