@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Plus, Download, Upload, Filter, X } from 'lucide-react';
 import { SpreadsheetTable } from '@/components/dashboard/SpreadsheetTable';
+import { AddJobPanel } from '@/components/AddJobPanel';
 import { exportToCSV } from '@/lib/utils';
 import { DashboardFilters } from '@/types';
 import { WelcomeModal } from '@/components/onboarding/WelcomeModal';
@@ -16,15 +17,9 @@ export default function SpreadsheetPage() {
   const { data, updateJob, deleteJob, addJob, loadSampleData } = useAppData();
   const [filters, setFilters] = useState<DashboardFilters>({});
   const [showFilters, setShowFilters] = useState(false);
-  const [showQuickAdd, setShowQuickAdd] = useState(false);
+  const [showAddPanel, setShowAddPanel] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showGettingStarted, setShowGettingStarted] = useState(false);
-  const [quickAddData, setQuickAddData] = useState({
-    company: '',
-    title: '',
-    status: 'Not Started' as const,
-    interest: 3,
-  });
 
   // Check if first time user
   useEffect(() => {
@@ -81,20 +76,9 @@ export default function SpreadsheetPage() {
     setFilters({});
   };
 
-  const handleQuickAdd = () => {
-    if (!quickAddData.company || !quickAddData.title) {
-      alert('Please enter at least a company and position');
-      return;
-    }
-
-    addJob(quickAddData as any);
-    setQuickAddData({
-      company: '',
-      title: '',
-      status: 'Not Started',
-      interest: 3,
-    });
-    setShowQuickAdd(false);
+  const handleAddJob = (jobData: any) => {
+    addJob(jobData);
+    setShowAddPanel(false);
   };
 
   return (
@@ -154,7 +138,7 @@ export default function SpreadsheetPage() {
             
             <Button
               size="sm"
-              onClick={() => setShowQuickAdd(true)}
+              onClick={() => setShowAddPanel(true)}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Row
@@ -206,57 +190,6 @@ export default function SpreadsheetPage() {
         )}
       </div>
 
-      {/* Quick Add Row */}
-      {showQuickAdd && (
-        <div className="bg-blue-50 dark:bg-blue-900/20 border-b border-blue-200 dark:border-blue-800 px-4 py-3 flex-shrink-0">
-          <div className="max-w-[1920px] mx-auto">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-sm font-medium text-blue-900 dark:text-blue-200">
-                Quick Add:
-              </span>
-              <Input
-                placeholder="Company*"
-                value={quickAddData.company}
-                onChange={(e) => setQuickAddData({ ...quickAddData, company: e.target.value })}
-                className="max-w-[200px]"
-              />
-              <Input
-                placeholder="Position*"
-                value={quickAddData.title}
-                onChange={(e) => setQuickAddData({ ...quickAddData, title: e.target.value })}
-                className="max-w-[200px]"
-              />
-              <Select
-                value={quickAddData.status}
-                onChange={(e) => setQuickAddData({ ...quickAddData, status: e.target.value as any })}
-                className="max-w-[150px]"
-              >
-                <option value="Not Started">Not Started</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Submitted">Submitted</option>
-              </Select>
-              <Select
-                value={quickAddData.interest}
-                onChange={(e) => setQuickAddData({ ...quickAddData, interest: Number(e.target.value) })}
-                className="max-w-[100px]"
-              >
-                <option value="5">5 ⭐</option>
-                <option value="4">4 ⭐</option>
-                <option value="3">3 ⭐</option>
-                <option value="2">2 ⭐</option>
-                <option value="1">1 ⭐</option>
-              </Select>
-              <Button size="sm" onClick={handleQuickAdd}>
-                Add
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => setShowQuickAdd(false)}>
-                Cancel
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
-
         {/* Spreadsheet Table - Full height */}
         <div className="flex-1 overflow-auto">
           <div className="max-w-[1920px] mx-auto p-4">
@@ -269,7 +202,7 @@ export default function SpreadsheetPage() {
                   setShowGettingStarted(false);
                 }}
                 onAddFirst={() => {
-                  setShowQuickAdd(true);
+                  setShowAddPanel(true);
                   setShowGettingStarted(false);
                 }}
                 onTakeTour={() => {
@@ -287,6 +220,13 @@ export default function SpreadsheetPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Job Slide-in Panel */}
+      <AddJobPanel
+        isOpen={showAddPanel}
+        onClose={() => setShowAddPanel(false)}
+        onAdd={handleAddJob}
+      />
     </>
   );
 }

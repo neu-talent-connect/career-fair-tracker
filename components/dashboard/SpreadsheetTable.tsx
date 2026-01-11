@@ -196,9 +196,11 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
     // Display value
     if (field === 'status') {
       return (
-        <Badge className={getStatusColor(value as string)}>
-          {value}
-        </Badge>
+        <div className="inline-block">
+          <Badge className={getStatusColor(value as string)}>
+            {value}
+          </Badge>
+        </div>
       );
     } else if (field === 'interest') {
       const display = getInterestDisplay(value as number);
@@ -229,8 +231,8 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
 
     return (
       <div className="flex items-center gap-2 group">
-        <span className="text-sm truncate flex-1" title={job.contact}>
-          {job.contact || 'Unknown'}
+        <span className="text-sm truncate flex-1" title={job.contact || undefined}>
+          {job.contact || '-'}
         </span>
         <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {job.contactEmail && (
@@ -342,11 +344,13 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
                   >
                     {renderContactCell(job)}
                   </td>
-                  <td 
-                    className="px-4 py-3 whitespace-nowrap cursor-pointer"
-                    onClick={() => handleCellClick(job.id, 'status', job.status)}
-                  >
-                    {renderCell(job, 'status')}
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div
+                      className="cursor-pointer"
+                      onClick={() => handleCellClick(job.id, 'status', job.status)}
+                    >
+                      {renderCell(job, 'status')}
+                    </div>
                   </td>
                   <td 
                     className="px-4 py-3 whitespace-nowrap cursor-pointer"
