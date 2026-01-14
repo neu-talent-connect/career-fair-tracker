@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Moon, Sun, BarChart3, Briefcase, Building2, Users, FileText, Table, Keyboard } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { cn } from '@/lib/utils';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 import { useGlobalShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useAppData } from '@/hooks/useAppData';
@@ -27,9 +27,21 @@ export function Navigation() {
   
   const shortcuts = useGlobalShortcuts(
     undefined,
-    () => setShowShortcuts(true),
-    undo
+    () => setShowShortcuts(true)
   );
+  
+  // Add Ctrl+Z listener for undo
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z') {
+        e.preventDefault();
+        undo();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undo]);
 
   return (
     <nav className="border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-50 shadow-sm">

@@ -62,58 +62,14 @@ export function useGlobalShortcuts(
   const router = useRouter();
 
   const shortcuts: KeyboardShortcut[] = [
-    // Navigation
-    {
-      key: '1',
-      ctrl: true,
-      description: 'Go to Dashboard',
-      action: () => router.push('/'),
-      category: 'Navigation',
-    },
-    {
-      key: '2',
-      ctrl: true,
-      description: 'Go to Spreadsheet',
-      action: () => router.push('/spreadsheet'),
-      category: 'Navigation',
-    },
-    {
-      key: '3',
-      ctrl: true,
-      description: 'Go to Career Fairs',
-      action: () => router.push('/career-fairs'),
-      category: 'Navigation',
-    },
-    {
-      key: '4',
-      ctrl: true,
-      description: 'Go to Applications',
-      action: () => router.push('/applications'),
-      category: 'Navigation',
-    },
-    {
-      key: '5',
-      ctrl: true,
-      description: 'Go to Networking',
-      action: () => router.push('/networking'),
-      category: 'Navigation',
-    },
-    {
-      key: '6',
-      ctrl: true,
-      description: 'Go to Resources',
-      action: () => router.push('/resources'),
-      category: 'Navigation',
-    },
     // Actions
     {
       key: 'z',
       ctrl: true,
       description: 'Undo last deletion',
       action: () => {
-        if (onUndo) {
-          onUndo();
-        }
+        // Undo is handled globally, just log for now
+        console.log('Ctrl+Z pressed - undo should work globally');
       },
       category: 'Actions',
     },
