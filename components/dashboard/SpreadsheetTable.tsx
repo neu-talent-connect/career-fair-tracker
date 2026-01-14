@@ -5,14 +5,18 @@ import { Job, JobStatus } from '@/types';
 import { formatDate, getStatusColor, getInterestDisplay } from '@/lib/utils';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Trash2, ExternalLink, Mail, Phone, User, X } from 'lucide-react';
+import { Trash2, ExternalLink, Mail, Phone, User, X, Copy } from 'lucide-react';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@/components/ui/Input';
+import { AutocompleteInput } from '@/components/ui/AutocompleteInput';
+import { usePositionSuggestions } from '@/hooks/usePositionSuggestions';
 
 interface SpreadsheetTableProps {
   jobs: Job[];
   onUpdate: (id: string, updates: Partial<Job>) => void;
   onDelete: (id: string) => void;
+  onDuplicate?: (job: Job) => void;
+  showRecommendedFields?: boolean;
 }
 
 interface ContactEditData {
@@ -21,7 +25,7 @@ interface ContactEditData {
   contactPhone: string;
 }
 
-export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableProps) {
+export function SpreadsheetTable({ jobs, onUpdate, onDelete, onDuplicate, showRecommendedFields = false }: SpreadsheetTableProps) {
   const [editingCell, setEditingCell] = useState<{ id: string; field: string } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [notesColumnWidth, setNotesColumnWidth] = useState<number>(250);
@@ -30,6 +34,7 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
   const resizeRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef<number>(0);
   const startWidthRef = useRef<number>(250);
+  const { positions, addPosition } = usePositionSuggestions();
 
   // Load saved column width from localStorage
   useEffect(() => {
@@ -52,6 +57,21 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
   const handleCellBlur = () => {
     if (editingCell) {
       onUpdate(editingCell.id, { [editingCell.field]: editValue });
+      
+      // If editing position (title), add to suggestions
+      if (editingCell.field === 'title' && editValue.trim()) {
+        addPosition(editValue.trim());
+      }
+      
+      setEditingCell(null);
+    }
+  };
+
+  // Immediate save for dropdowns (status, interest)
+  const handleDropdownChange = (value: string) => {
+    setEditValue(value);
+    if (editingCell) {
+      onUpdate(editingCell.id, { [editingCell.field]: value });
       setEditingCell(null);
     }
   };
@@ -125,8 +145,7 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
           <select
             autoFocus
             value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleCellBlur}
+            onChange={(e) => handleDropdownChange(e.target.value)}
             className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-northeastern-red dark:bg-gray-800 dark:border-gray-600"
           >
             <option value="Not Started">Not Started</option>
@@ -143,8 +162,7 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
           <select
             autoFocus
             value={editValue}
-            onChange={(e) => setEditValue(e.target.value)}
-            onBlur={handleCellBlur}
+            onChange={(e) => handleDropdownChange(e.target.value)}
             className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-northeastern-red dark:bg-gray-800 dark:border-gray-600"
           >
             <option value="5">5 - Dream Job</option>
@@ -176,6 +194,18 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
             onKeyDown={handleKeyDown}
             className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-2 focus:ring-northeastern-red dark:bg-gray-800 dark:border-gray-600 resize-none"
             rows={3}
+          />
+        );
+      } else if (field === 'title') {
+        // Use autocomplete for position field
+        return (
+          <AutocompleteInput
+            autoFocus
+            value={editValue}
+            onChange={setEditValue}
+            onBlur={handleCellBlur}
+            suggestions={positions}
+            placeholder="Enter position..."
           />
         );
       } else {
@@ -292,6 +322,19 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Status
                 </th>
+                {showRecommendedFields && (
+                  <>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Location
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Salary
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                      Date Applied
+                    </th>
+                  </>
+                )}
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Deadline
                 </th>
@@ -352,6 +395,28 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
                       {renderCell(job, 'status')}
                     </div>
                   </td>
+                  {showRecommendedFields && (
+                    <>
+                      <td 
+                        className="px-4 py-3 whitespace-nowrap cursor-pointer"
+                        onClick={() => handleCellClick(job.id, 'location', job.location)}
+                      >
+                        {renderCell(job, 'location')}
+                      </td>
+                      <td 
+                        className="px-4 py-3 whitespace-nowrap cursor-pointer"
+                        onClick={() => handleCellClick(job.id, 'salary', job.salary)}
+                      >
+                        {renderCell(job, 'salary')}
+                      </td>
+                      <td 
+                        className="px-4 py-3 whitespace-nowrap cursor-pointer"
+                        onClick={() => handleCellClick(job.id, 'dateApplied', job.dateApplied)}
+                      >
+                        {renderCell(job, 'dateApplied')}
+                      </td>
+                    </>
+                  )}
                   <td 
                     className="px-4 py-3 whitespace-nowrap cursor-pointer"
                     onClick={() => handleCellClick(job.id, 'deadline', job.deadline)}
@@ -382,6 +447,15 @@ export function SpreadsheetTable({ jobs, onUpdate, onDelete }: SpreadsheetTableP
                         >
                           <ExternalLink className="w-4 h-4" />
                         </a>
+                      )}
+                      {onDuplicate && (
+                        <button
+                          onClick={() => onDuplicate(job)}
+                          className="text-gray-400 hover:text-blue-600 transition-colors"
+                          title="Duplicate row"
+                        >
+                          <Copy className="w-4 h-4" />
+                        </button>
                       )}
                       <button
                         onClick={() => onDelete(job.id)}

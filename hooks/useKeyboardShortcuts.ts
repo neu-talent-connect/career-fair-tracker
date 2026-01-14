@@ -107,6 +107,17 @@ export function useGlobalShortcuts(
     },
     // Actions
     {
+      key: 'z',
+      ctrl: true,
+      description: 'Undo last deletion',
+      action: () => {
+        if (onUndo) {
+          onUndo();
+        }
+      },
+      category: 'Actions',
+    },
+    {
       key: 'n',
       ctrl: true,
       description: 'Add new job',

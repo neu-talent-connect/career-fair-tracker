@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
+import { AutocompleteInput } from '@/components/ui/AutocompleteInput';
+import { usePositionSuggestions } from '@/hooks/usePositionSuggestions';
 import { getTodayDate } from '@/lib/utils';
 
 interface AddJobPanelProps {
@@ -15,6 +17,7 @@ interface AddJobPanelProps {
 }
 
 export function AddJobPanel({ isOpen, onClose, onAdd }: AddJobPanelProps) {
+  const { positions, addPosition } = usePositionSuggestions();
   const [formData, setFormData] = useState({
     company: '',
     title: '',
@@ -32,6 +35,11 @@ export function AddJobPanel({ isOpen, onClose, onAdd }: AddJobPanelProps) {
     if (!formData.company.trim()) {
       alert('Company name is required');
       return;
+    }
+
+    // Add position to suggestions if provided
+    if (formData.title.trim()) {
+      addPosition(formData.title.trim());
     }
 
     onAdd(formData);
@@ -102,13 +110,18 @@ export function AddJobPanel({ isOpen, onClose, onAdd }: AddJobPanelProps) {
               </p>
             </div>
 
-            {/* Position - OPTIONAL */}
-            <Input
-              label="Position"
-              placeholder="e.g., Software Engineer (optional)"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-            />
+            {/* Position - OPTIONAL with Autocomplete */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                Position
+              </label>
+              <AutocompleteInput
+                value={formData.title}
+                onChange={(value) => setFormData({ ...formData, title: value })}
+                suggestions={positions}
+                placeholder="e.g., Software Engineer (optional)"
+              />
+            </div>
 
             {/* Status */}
             <Select

@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 import { useGlobalShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useAppData } from '@/hooks/useAppData';
 
 const navItems = [
   { href: '/spreadsheet', label: 'Spreadsheet', icon: BarChart3, featured: true },
@@ -22,10 +23,12 @@ export function Navigation() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const { undo } = useAppData();
   
   const shortcuts = useGlobalShortcuts(
     undefined,
-    () => setShowShortcuts(true)
+    () => setShowShortcuts(true),
+    undo
   );
 
   return (

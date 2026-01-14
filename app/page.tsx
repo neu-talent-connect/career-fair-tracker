@@ -33,6 +33,23 @@ export default function DashboardPage() {
     setShowGettingStarted(false);
     localStorage.setItem('dismissedGettingStarted', 'true');
   };
+
+  const handleLoadSampleData = () => {
+    // Safety check: if user has data, show confirmation
+    if (data.jobs.length > 0 || data.companies.length > 0 || data.contacts.length > 0) {
+      const confirmed = window.confirm(
+        '⚠️ WARNING: This will REPLACE all your current data with sample data.\n\n' +
+        'All your applications, companies, and contacts will be lost.\n\n' +
+        'Are you absolutely sure you want to continue?'
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+    }
+    
+    loadSampleData();
+  };
   
   // Filter jobs
   const filteredJobs = data.jobs.filter((job) => {
@@ -84,7 +101,7 @@ export default function DashboardPage() {
         <GettingStartedBanner
           onDismiss={handleDismissGettingStarted}
           onLoadSample={() => {
-            loadSampleData();
+            handleLoadSampleData();
             setShowGettingStarted(false);
           }}
           onAddFirst={() => {
@@ -118,14 +135,18 @@ export default function DashboardPage() {
               Applications
             </h2>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={loadSampleData}
-              >
-                <Upload className="w-4 h-4 mr-2" />
-                Load Sample Data
-              </Button>
+              {/* Only show Sample Data button when user has no data */}
+              {data.jobs.length === 0 && (
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleLoadSampleData}
+                  title="Load sample data to explore features"
+                >
+                  <Upload className="w-4 h-4 mr-2" />
+                  Load Sample Data
+                </Button>
+              )}
               <Button
                 variant="secondary"
                 size="sm"

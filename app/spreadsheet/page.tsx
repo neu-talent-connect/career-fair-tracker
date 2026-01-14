@@ -20,6 +20,14 @@ export default function SpreadsheetPage() {
   const [showAddPanel, setShowAddPanel] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showGettingStarted, setShowGettingStarted] = useState(false);
+  const [showRecommendedFields, setShowRecommendedFields] = useState(() => {
+    // Load from localStorage
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('showRecommendedFields');
+      return saved === 'true';
+    }
+    return false;
+  });
 
   // Check if first time user
   useEffect(() => {
@@ -81,6 +89,40 @@ export default function SpreadsheetPage() {
     setShowAddPanel(false);
   };
 
+  const handleDuplicateJob = (job: any) => {
+    // Create a copy with a new ID and reset some fields
+    const duplicatedJob = {
+      ...job,
+      id: undefined, // Will generate new ID
+      createdAt: undefined,
+      updatedAt: undefined,
+    };
+    addJob(duplicatedJob);
+  };
+
+  const toggleRecommendedFields = () => {
+    const newValue = !showRecommendedFields;
+    setShowRecommendedFields(newValue);
+    localStorage.setItem('showRecommendedFields', String(newValue));
+  };
+
+  const handleLoadSampleData = () => {
+    // Safety check: if user has data, show confirmation
+    if (data.jobs.length > 0 || data.companies.length > 0 || data.contacts.length > 0) {
+      const confirmed = window.confirm(
+        '⚠️ WARNING: This will REPLACE all your current data with sample data.\n\n' +
+        'All your applications, companies, and contacts will be lost.\n\n' +
+        'Are you absolutely sure you want to continue?'
+      );
+      
+      if (!confirmed) {
+        return;
+      }
+    }
+    
+    loadSampleData();
+  };
+
   return (
     <>
       {/* Welcome Modal for First-Time Users */}
@@ -107,6 +149,16 @@ export default function SpreadsheetPage() {
 
           {/* Right side - Actions */}
           <div className="flex items-center gap-2 flex-wrap">
+            <label className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                checked={showRecommendedFields}
+                onChange={toggleRecommendedFields}
+                className="w-4 h-4 text-northeastern-red bg-gray-100 border-gray-300 rounded focus:ring-northeastern-red focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              />
+              <span className="whitespace-nowrap">Show Recommended</span>
+            </label>
+            
             <Button
               variant="outline"
               size="sm"
@@ -117,14 +169,18 @@ export default function SpreadsheetPage() {
               Filter
             </Button>
             
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={loadSampleData}
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              Sample Data
-            </Button>
+            {/* Only show Sample Data button when user has no data */}
+            {data.jobs.length === 0 && (
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleLoadSampleData}
+                title="Load sample data to explore features"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                Sample Data
+              </Button>
+            )}
             
             <Button
               variant="secondary"
@@ -198,7 +254,7 @@ export default function SpreadsheetPage() {
               <GettingStartedBanner
                 onDismiss={handleDismissGettingStarted}
                 onLoadSample={() => {
-                  loadSampleData();
+                  handleLoadSampleData();
                   setShowGettingStarted(false);
                 }}
                 onAddFirst={() => {
@@ -216,6 +272,8 @@ export default function SpreadsheetPage() {
               jobs={filteredJobs}
               onUpdate={updateJob}
               onDelete={deleteJob}
+              onDuplicate={handleDuplicateJob}
+              showRecommendedFields={showRecommendedFields}
             />
           </div>
         </div>
