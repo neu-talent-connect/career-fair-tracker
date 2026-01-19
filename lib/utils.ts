@@ -86,25 +86,25 @@ export function exportToCSV(data: any[], filename: string) {
 export function getStatusColor(status: string): string {
   switch (status) {
     case 'Not Started':
-      return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-white';
     case 'In Progress':
-      return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
+      return 'bg-blue-100 text-blue-800 dark:bg-blue-600 dark:text-white';
     case 'Submitted':
-      return 'bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-300';
+      return 'bg-purple-100 text-purple-800 dark:bg-purple-600 dark:text-white';
     case 'Under Review':
-      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
+      return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-500 dark:text-black';
     case 'Interview':
-      return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
+      return 'bg-green-100 text-green-800 dark:bg-green-600 dark:text-white';
     case 'Rejected':
-      return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
+      return 'bg-red-100 text-red-800 dark:bg-red-600 dark:text-white';
     case 'Offer':
-      return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300';
+      return 'bg-emerald-100 text-emerald-800 dark:bg-emerald-600 dark:text-white';
     case 'Pending':
-      return 'bg-orange-100 text-orange-700 dark:bg-orange-900 dark:text-orange-300';
+      return 'bg-orange-100 text-orange-800 dark:bg-orange-500 dark:text-black';
     case 'Completed':
-      return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
+      return 'bg-green-100 text-green-800 dark:bg-green-600 dark:text-white';
     default:
-      return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+      return 'bg-gray-100 text-gray-800 dark:bg-gray-600 dark:text-white';
   }
 }
 
@@ -129,13 +129,13 @@ export function getInterestDisplay(level: number): { label: string; color: strin
 export function getPriorityColor(priority: string): string {
   switch (priority) {
     case 'High':
-      return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
+      return 'bg-red-100 text-red-700 dark:bg-red-600 dark:text-white';
     case 'Medium':
-      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
+      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500 dark:text-black';
     case 'Low':
-      return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
+      return 'bg-blue-100 text-blue-700 dark:bg-blue-600 dark:text-white';
     default:
-      return 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+      return 'bg-gray-100 text-gray-700 dark:bg-gray-600 dark:text-white';
   }
 }
 

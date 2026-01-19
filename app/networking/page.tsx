@@ -8,29 +8,57 @@ import { Input } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
 import { Textarea } from '@/components/ui/Textarea';
 import { Badge } from '@/components/ui/Badge';
-import { Trash2, Mail, Linkedin, Phone, Calendar, AlertCircle } from 'lucide-react';
+import { Trash2, Mail, Linkedin, Phone, Calendar, AlertCircle, Star, Pin, Edit, X } from 'lucide-react';
 import { formatDate, getPriorityColor, getStatusColor, getTodayDate, isOverdue } from '@/lib/utils';
 import { Contact, FollowUp } from '@/types';
 
 export default function NetworkingPage() {
-  const { data, addContact, deleteContact, addFollowUp, updateFollowUp, deleteFollowUp } = useAppData();
+  const { data, addContact, updateContact, deleteContact, addFollowUp, updateFollowUp, deleteFollowUp } = useAppData();
   const [activeTab, setActiveTab] = useState<'contacts' | 'followups'>('contacts');
   const [contactForm, setContactForm] = useState<Partial<Contact>>({
     type: 'Career Fair',
     strength: 'Cold',
+    ranking: 3,
+    isPinned: false,
   });
+  const [editingContactId, setEditingContactId] = useState<string | null>(null);
   const [followupForm, setFollowupForm] = useState<Partial<FollowUp>>({
     type: 'Thank You',
     priority: 'Medium',
     status: 'Pending',
   });
+  
+  // Filter and sort states
+  const [rankFilter, setRankFilter] = useState<number | null>(null);
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [showPinnedFirst, setShowPinnedFirst] = useState(true);
 
   const handleContactSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!contactForm.name) return;
     
-    addContact(contactForm as any);
-    setContactForm({ type: 'Career Fair', strength: 'Cold' });
+    if (editingContactId) {
+      // Update existing contact
+      updateContact(editingContactId, contactForm);
+      setEditingContactId(null);
+    } else {
+      // Add new contact
+      addContact(contactForm as any);
+    }
+    
+    setContactForm({ type: 'Career Fair', strength: 'Cold', ranking: 3, isPinned: false });
+  };
+
+  const handleEditContact = (contact: Contact) => {
+    setContactForm(contact);
+    setEditingContactId(contact.id);
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingContactId(null);
+    setContactForm({ type: 'Career Fair', strength: 'Cold', ranking: 3, isPinned: false });
   };
 
   const handleFollowupSubmit = (e: React.FormEvent) => {
@@ -53,9 +81,30 @@ export default function NetworkingPage() {
     }
   };
 
-  const sortedContacts = [...data.contacts].sort((a, b) => 
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const togglePin = (contact: Contact) => {
+    updateContact(contact.id, { isPinned: !contact.isPinned });
+  };
+
+  // Filter and sort contacts
+  const filteredAndSortedContacts = data.contacts
+    .filter(contact => {
+      // Filter by rank
+      if (rankFilter && contact.ranking !== rankFilter) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      // Sort pinned first if enabled
+      if (showPinnedFirst) {
+        if (a.isPinned && !b.isPinned) return -1;
+        if (!a.isPinned && b.isPinned) return 1;
+      }
+      
+      // Then sort by ranking
+      const aRank = a.ranking || 0;
+      const bRank = b.ranking || 0;
+      return sortOrder === 'desc' ? bRank - aRank : aRank - bRank;
+    });
+
 
   const sortedFollowups = [...data.followups].sort((a, b) => {
     // Sort by status (pending first), then by due date
@@ -116,12 +165,25 @@ export default function NetworkingPage() {
       {/* Contacts Tab */}
       {activeTab === 'contacts' && (
         <>
-          {/* Add Contact Form */}
+          {/* Add/Edit Contact Form */}
           <Card className="mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
             <form onSubmit={handleContactSubmit} className="p-6">
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white mb-6">
-                Add New Contact
-              </h2>
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  {editingContactId ? 'Edit Contact' : 'Add New Contact'}
+                </h2>
+                {editingContactId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Cancel
+                  </Button>
+                )}
+              </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                 <Input
@@ -192,6 +254,18 @@ export default function NetworkingPage() {
                   <option value="Warm">Warm</option>
                   <option value="Hot">Hot</option>
                 </Select>
+
+                <Select
+                  label="Priority Ranking"
+                  value={contactForm.ranking || 3}
+                  onChange={(e) => setContactForm({ ...contactForm, ranking: Number(e.target.value) })}
+                >
+                  <option value="5">⭐⭐⭐⭐⭐ (5 - Top Priority)</option>
+                  <option value="4">⭐⭐⭐⭐ (4 - High)</option>
+                  <option value="3">⭐⭐⭐ (3 - Medium)</option>
+                  <option value="2">⭐⭐ (2 - Low)</option>
+                  <option value="1">⭐ (1 - Minimal)</option>
+                </Select>
               </div>
 
               <Textarea
@@ -202,22 +276,82 @@ export default function NetworkingPage() {
                 className="mb-4"
               />
 
-              <Button type="submit">
-                Add Contact
-              </Button>
+              <div className="flex gap-3">
+                <Button type="submit">
+                  {editingContactId ? 'Update Contact' : 'Add Contact'}
+                </Button>
+                {editingContactId && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleCancelEdit}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </div>
             </form>
+          </Card>
+
+          {/* Filter/Sort Controls */}
+          <Card className="mb-6 p-4 animate-fade-in" style={{ animationDelay: '250ms' }}>
+            <div className="flex flex-wrap gap-4 items-center">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Filter by Rank:
+                </label>
+                <Select
+                  value={rankFilter || ''}
+                  onChange={(e) => setRankFilter(e.target.value ? Number(e.target.value) : null)}
+                  className="w-48"
+                >
+                  <option value="">All Ranks</option>
+                  <option value="5">⭐⭐⭐⭐⭐ (5)</option>
+                  <option value="4">⭐⭐⭐⭐ (4)</option>
+                  <option value="3">⭐⭐⭐ (3)</option>
+                  <option value="2">⭐⭐ (2)</option>
+                  <option value="1">⭐ (1)</option>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Sort Order:
+                </label>
+                <Select
+                  value={sortOrder}
+                  onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+                  className="w-40"
+                >
+                  <option value="desc">Highest First</option>
+                  <option value="asc">Lowest First</option>
+                </Select>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={showPinnedFirst}
+                  onChange={(e) => setShowPinnedFirst(e.target.checked)}
+                  className="w-4 h-4 text-northeastern-red bg-gray-100 border-gray-300 rounded focus:ring-northeastern-red focus:ring-2"
+                />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Show Pinned First
+                </span>
+              </label>
+            </div>
           </Card>
 
           {/* Contacts List */}
           <div className="space-y-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
-            {sortedContacts.length === 0 ? (
+            {filteredAndSortedContacts.length === 0 ? (
               <Card className="p-12 text-center">
                 <p className="text-gray-500 dark:text-gray-400 text-lg">
-                  No contacts added yet. Start networking!
+                  {rankFilter ? 'No contacts match this filter.' : 'No contacts added yet. Start networking!'}
                 </p>
               </Card>
             ) : (
-              sortedContacts.map((contact, index) => (
+              filteredAndSortedContacts.map((contact, index) => (
                 <Card 
                   key={contact.id} 
                   className="p-6 hover:shadow-lg transition-all animate-slide-up"
@@ -227,9 +361,42 @@ export default function NetworkingPage() {
                     <div className="flex-1">
                       <div className="flex items-start gap-3 mb-3">
                         <div className="flex-1">
-                          <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-1">
-                            {contact.name}
-                          </h3>
+                          <div className="flex items-center gap-3 mb-1">
+                            <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                              {contact.name}
+                            </h3>
+                            
+                            {/* Pin Button */}
+                            <button
+                              onClick={() => togglePin(contact)}
+                              className={`transition-colors ${
+                                contact.isPinned 
+                                  ? 'text-yellow-500 hover:text-yellow-600' 
+                                  : 'text-gray-300 hover:text-gray-400'
+                              }`}
+                              title={contact.isPinned ? 'Unpin contact' : 'Pin contact'}
+                            >
+                              <Pin className={`w-5 h-5 ${contact.isPinned ? 'fill-current' : ''}`} />
+                            </button>
+                          </div>
+
+                          {/* Ranking Stars */}
+                          <div className="flex items-center gap-1 mb-2">
+                            {Array.from({ length: 5 }).map((_, i) => (
+                              <Star
+                                key={i}
+                                className={`w-4 h-4 ${
+                                  i < (contact.ranking || 0)
+                                    ? 'text-yellow-500 fill-current'
+                                    : 'text-gray-300'
+                                }`}
+                              />
+                            ))}
+                            <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                              ({contact.ranking || 0}/5)
+                            </span>
+                          </div>
+
                           {contact.company && (
                             <p className="text-gray-600 dark:text-gray-400">
                               {contact.position ? `${contact.position} at ` : ''}{contact.company}
@@ -291,13 +458,22 @@ export default function NetworkingPage() {
                       )}
                     </div>
 
-                    <Button
-                      variant="danger"
-                      size="sm"
-                      onClick={() => handleDeleteContact(contact.id)}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleEditContact(contact)}
+                      >
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => handleDeleteContact(contact.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </Card>
               ))

@@ -61,6 +61,8 @@ export interface Contact {
   phone?: string;
   type: ConnectionType;
   strength: RelationshipStrength;
+  ranking?: number; // 1-5 rating
+  isPinned?: boolean; // Favorite/pin system
   notes?: string;
   createdAt: string;
 }

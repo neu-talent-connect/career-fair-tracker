@@ -9,12 +9,12 @@ interface ChartsProps {
 }
 
 const STATUS_COLORS = {
-  'Not Started': '#94a3b8',
-  'In Progress': '#60a5fa',
-  'Submitted': '#a78bfa',
-  'Under Review': '#fbbf24',
-  'Interview': '#34d399',
-  'Rejected': '#f87171',
+  'Not Started': '#9ca3af',
+  'In Progress': '#3b82f6',
+  'Submitted': '#a855f7',
+  'Under Review': '#eab308',
+  'Interview': '#22c55e',
+  'Rejected': '#ef4444',
   'Offer': '#10b981',
 };
 
@@ -68,8 +68,6 @@ export function Charts({ jobs }: ChartsProps) {
                 data={statusData}
                 cx="50%"
                 cy="50%"
-                labelLine={false}
-                label={({ status, count }) => `${status}: ${count}`}
                 outerRadius={80}
                 dataKey="count"
               >
@@ -77,6 +75,10 @@ export function Charts({ jobs }: ChartsProps) {
                   <Cell key={`cell-${index}`} fill={entry.fill} />
                 ))}
               </Pie>
+              <Legend 
+                wrapperStyle={{ paddingTop: '20px' }}
+                iconType="circle"
+              />
               <Tooltip 
                 contentStyle={{
                   backgroundColor: 'rgba(0, 0, 0, 0.8)',
@@ -98,22 +100,26 @@ export function Charts({ jobs }: ChartsProps) {
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={interestData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
               <XAxis 
                 dataKey="level" 
-                stroke="#9ca3af"
+                className="fill-gray-600 dark:fill-gray-400"
                 tick={{ fontSize: 12 }}
               />
-              <YAxis stroke="#9ca3af" />
+              <YAxis className="fill-gray-600 dark:fill-gray-400" />
               <Tooltip 
                 contentStyle={{
-                  backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                  backgroundColor: 'var(--tooltip-bg)',
                   border: 'none',
                   borderRadius: '8px',
-                  color: 'white',
+                  color: 'var(--tooltip-text)',
                 }}
               />
-              <Bar dataKey="count" radius={[8, 8, 0, 0]} />
+              <Bar dataKey="count" radius={[8, 8, 0, 0]}>
+                {interestData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.fill} />
+                ))}
+              </Bar>
             </BarChart>
           </ResponsiveContainer>
         </CardContent>
@@ -128,15 +134,15 @@ export function Charts({ jobs }: ChartsProps) {
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={monthlyChartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                <XAxis dataKey="month" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
+                <CartesianGrid strokeDasharray="3 3" className="stroke-gray-200 dark:stroke-gray-700" />
+                <XAxis dataKey="month" className="fill-gray-600 dark:fill-gray-400" />
+                <YAxis className="fill-gray-600 dark:fill-gray-400" />
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                    backgroundColor: 'var(--tooltip-bg)',
                     border: 'none',
                     borderRadius: '8px',
-                    color: 'white',
+                    color: 'var(--tooltip-text)',
                   }}
                 />
                 <Bar dataKey="count" fill="#C8102E" radius={[8, 8, 0, 0]} />
