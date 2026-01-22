@@ -1,0 +1,210 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { Button } from '@/components/ui/Button';
+import { X, Upload, Trash2 } from 'lucide-react';
+import { AppData } from '@/types';
+
+const STORAGE_KEY = 'careerFairData';
+const MIGRATION_DISMISSED_KEY = 'migrationDismissed';
+
+export function MigrateDataModal() {
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
+  
+  const [showModal, setShowModal] = useState(false);
+  const [localData, setLocalData] = useState<AppData | null>(null);
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated || status === 'loading') return;
+
+    // Check if migration was already dismissed
+    const dismissed = localStorage.getItem(MIGRATION_DISMISSED_KEY);
+    if (dismissed) return;
+
+    // Check if there's local data to migrate
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (!stored) return;
+
+      const data: AppData = JSON.parse(stored);
+      const hasData = 
+        data.jobs?.length > 0 || 
+        data.contacts?.length > 0 || 
+        data.followups?.length > 0 || 
+        data.interviews?.length > 0;
+
+      if (hasData) {
+        setLocalData(data);
+        setShowModal(true);
+      }
+    } catch (err) {
+      console.error('Error checking local data:', err);
+    }
+  }, [isAuthenticated, status]);
+
+  const handleMigrate = async () => {
+    if (!localData) return;
+
+    setIsMigrating(true);
+    setError(null);
+
+    try {
+      // Migrate jobs
+      for (const job of localData.jobs || []) {
+        await fetch('/api/jobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(job),
+        });
+      }
+
+      // Migrate contacts
+      for (const contact of localData.contacts || []) {
+        await fetch('/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(contact),
+        });
+      }
+
+      // Migrate follow-ups
+      for (const followup of localData.followups || []) {
+        await fetch('/api/followups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(followup),
+        });
+      }
+
+      // Migrate interviews
+      for (const interview of localData.interviews || []) {
+        await fetch('/api/interviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(interview),
+        });
+      }
+
+      // Clear local storage after successful migration
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.setItem(MIGRATION_DISMISSED_KEY, 'true');
+      
+      setShowModal(false);
+      window.location.reload(); // Reload to fetch from API
+    } catch (err) {
+      console.error('Error migrating data:', err);
+      setError('Failed to migrate data. Please try again.');
+    } finally {
+      setIsMigrating(false);
+    }
+  };
+
+  const handleDismiss = () => {
+    localStorage.setItem(MIGRATION_DISMISSED_KEY, 'true');
+    setShowModal(false);
+  };
+
+  const handleClearAndDismiss = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.setItem(MIGRATION_DISMISSED_KEY, 'true');
+    setShowModal(false);
+  };
+
+  if (!showModal || !localData) return null;
+
+  const jobsCount = localData.jobs?.length || 0;
+  const contactsCount = localData.contacts?.length || 0;
+  const followupsCount = localData.followups?.length || 0;
+  const interviewsCount = localData.interviews?.length || 0;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-md w-full p-6">
+        {/* Header */}
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              Save Your Data?
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              You have data from guest mode
+            </p>
+          </div>
+          <button
+            onClick={handleDismiss}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded"
+          >
+            <X className="w-5 h-5 text-gray-500" />
+          </button>
+        </div>
+
+        {/* Data Summary */}
+        <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-4">
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            We found:
+          </p>
+          <ul className="space-y-1 text-sm text-gray-600 dark:text-gray-400">
+            {jobsCount > 0 && <li>• {jobsCount} job application{jobsCount !== 1 ? 's' : ''}</li>}
+            {contactsCount > 0 && <li>• {contactsCount} contact{contactsCount !== 1 ? 's' : ''}</li>}
+            {followupsCount > 0 && <li>• {followupsCount} follow-up{followupsCount !== 1 ? 's' : ''}</li>}
+            {interviewsCount > 0 && <li>• {interviewsCount} interview{interviewsCount !== 1 ? 's' : ''}</li>}
+          </ul>
+        </div>
+
+        {/* Error Message */}
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mb-4">
+            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div className="flex flex-col gap-2">
+          <Button
+            onClick={handleMigrate}
+            disabled={isMigrating}
+            className="w-full bg-northeastern-red hover:bg-red-700 text-white flex items-center justify-center gap-2"
+          >
+            {isMigrating ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving to Account...
+              </>
+            ) : (
+              <>
+                <Upload className="w-4 h-4" />
+                Save to My Account
+              </>
+            )}
+          </Button>
+
+          <Button
+            onClick={handleClearAndDismiss}
+            disabled={isMigrating}
+            variant="outline"
+            className="w-full flex items-center justify-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Discard Guest Data
+          </Button>
+
+          <button
+            onClick={handleDismiss}
+            disabled={isMigrating}
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+          >
+            Remind me later
+          </button>
+        </div>
+
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-4 text-center">
+          Your data will be securely saved to your account
+        </p>
+      </div>
+    </div>
+  );
+}

@@ -1,0 +1,146 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  jobs      Job[]
+  companies Company[]
+  contacts  Contact[]
+  followups FollowUp[]
+  interviews Interview[]
+}
+
+model Job {
+  id               String   @id @default(cuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  company          String
+  title            String
+  status           String   // JobStatus enum values
+  interest         Int      // 1-5
+  dateApplied      String?
+  deadline         String?
+  notes            String?  @db.Text
+  
+  // Advanced fields
+  jobId            String?
+  location         String?
+  salary           String?
+  applicationCycle String?
+  datePosted       String?
+  contact          String?
+  contactEmail     String?
+  contactPhone     String?
+  resume           String?  // ResumeVersion enum values
+  coverLetter      String?  // CoverLetterStatus enum values
+  url              String?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([deadline])
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name        String
+  industry    String?
+  interest    Int      // 1-5
+  booth       String?
+  recruiter   String?
+  position    String?
+  optFriendly String?  // 'Yes' | 'No' | 'Case-by-case' | ''
+  deadline    String?
+  notes       String?  @db.Text
+  
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+}
+
+model Contact {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name      String
+  company   String?
+  position  String?
+  email     String?
+  linkedin  String?
+  phone     String?
+  type      String   // ConnectionType enum values
+  strength  String   // RelationshipStrength enum values
+  ranking   Int?     // 1-5 rating
+  isPinned  Boolean? @default(false)
+  notes     String?  @db.Text
+  
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isPinned])
+}
+
+model FollowUp {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  company   String
+  contact   String?
+  type      String   // FollowUpType enum values
+  dueDate   String
+  priority  String   // Priority enum values
+  status    String   // FollowUpStatus enum values
+  
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Interview {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  jobId        String
+  company      String
+  position     String
+  type         String   // InterviewType enum values
+  date         String
+  time         String?
+  location     String?
+  interviewers String?
+  notes        String?  @db.Text
+  status       String   // InterviewStatus enum values
+  
+  createdAt    DateTime @default(now())
+
+  @@index([userId])
+  @@index([date])
+  @@index([status])
+}

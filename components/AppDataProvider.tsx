@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useEffect, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useUndo } from '@/hooks/useUndo';
 import { useToast } from '@/components/Toast';
@@ -51,90 +52,225 @@ interface AppDataContextType {
 const AppDataContext = createContext<AppDataContextType | undefined>(undefined);
 
 export function AppDataProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useLocalStorage<AppData>(STORAGE_KEY, initialData);
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated' && !!session?.user?.id;
+  const isLoading = status === 'loading';
+
+  // For guests: use localStorage
+  const [localData, setLocalData] = useLocalStorage<AppData>(STORAGE_KEY, initialData);
+  
+  // For authenticated users: use state + API
+  const [apiData, setApiData] = useState<AppData>(initialData);
+  const [isApiLoading, setIsApiLoading] = useState(false);
+
+  // Choose which data source to use
+  const data = isAuthenticated ? apiData : localData;
+  const setData = isAuthenticated ? setApiData : setLocalData;
+
   const { addToUndoStack, popFromUndoStack, canUndo, undoCount } = useUndo();
   const { showToast } = useToast();
 
+  // Fetch data from API on mount if authenticated
+  useEffect(() => {
+    if (!isAuthenticated || isLoading) return;
+
+    setIsApiLoading(true);
+    
+    Promise.all([
+      fetch('/api/jobs').then(r => r.ok ? r.json() : []),
+      fetch('/api/contacts').then(r => r.ok ? r.json() : []),
+      fetch('/api/followups').then(r => r.ok ? r.json() : []),
+      fetch('/api/interviews').then(r => r.ok ? r.json() : []),
+    ])
+      .then(([jobs, contacts, followups, interviews]) => {
+        setApiData({
+          jobs,
+          contacts,
+          followups,
+          interviews,
+          companies: [], // Not using companies table for now
+        });
+      })
+      .catch(err => {
+        console.error('Failed to fetch data:', err);
+        showToast('Failed to load data', 'error');
+      })
+      .finally(() => setIsApiLoading(false));
+  }, [isAuthenticated, isLoading]);
+
   // Jobs CRUD
-  const addJob = (job: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
-    const newJob: Job = {
-      ...job,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-    
-    setData(prev => ({
-      ...prev,
-      jobs: [...prev.jobs, newJob],
-    }));
-    
-    return newJob;
+  const addJob = async (job: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => {
+    if (isAuthenticated) {
+      // API mode
+      try {
+        const response = await fetch('/api/jobs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(job),
+        });
+        
+        if (!response.ok) throw new Error('Failed to create job');
+        
+        const newJob: Job = await response.json();
+        setData(prev => ({
+          ...prev,
+          jobs: [...prev.jobs, newJob],
+        }));
+        
+        return newJob;
+      } catch (error) {
+        console.error('Error adding job:', error);
+        showToast('Failed to add job', 'error');
+        throw error;
+      }
+    } else {
+      // localStorage mode (guest)
+      const newJob: Job = {
+        ...job,
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+      
+      setData(prev => ({
+        ...prev,
+        jobs: [...prev.jobs, newJob],
+      }));
+      
+      return newJob;
+    }
   };
 
-  const updateJob = (id: string, updates: Partial<Job>) => {
-    setData(prev => ({
-      ...prev,
-      jobs: prev.jobs.map(job =>
-        job.id === id
-          ? { ...job, ...updates, updatedAt: new Date().toISOString() }
-          : job
-      ),
-    }));
+  const updateJob = async (id: string, updates: Partial<Job>) => {
+    if (isAuthenticated) {
+      // API mode
+      try {
+        const response = await fetch(`/api/jobs/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+        
+        if (!response.ok) throw new Error('Failed to update job');
+        
+        const updatedJob: Job = await response.json();
+        setData(prev => ({
+          ...prev,
+          jobs: prev.jobs.map(job => job.id === id ? updatedJob : job),
+        }));
+      } catch (error) {
+        console.error('Error updating job:', error);
+        showToast('Failed to update job', 'error');
+      }
+    } else {
+      // localStorage mode (guest)
+      setData(prev => ({
+        ...prev,
+        jobs: prev.jobs.map(job =>
+          job.id === id
+            ? { ...job, ...updates, updatedAt: new Date().toISOString() }
+            : job
+        ),
+      }));
+    }
   };
 
-  const deleteJob = (id: string) => {
+  const deleteJob = async (id: string) => {
     const job = data.jobs.find(j => j.id === id);
     if (!job) return;
 
     const deletedJob = { ...job };
 
-    addToUndoStack({
-      type: 'job',
-      data: deletedJob,
-      deletedAt: new Date().toISOString(),
-    });
+    if (isAuthenticated) {
+      // API mode
+      try {
+        const response = await fetch(`/api/jobs/${id}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) throw new Error('Failed to delete job');
+        
+        // Remove from local state immediately
+        setData(prev => ({
+          ...prev,
+          jobs: prev.jobs.filter(job => job.id !== id),
+        }));
 
-    setData(prev => ({
-      ...prev,
-      jobs: prev.jobs.filter(job => job.id !== id),
-    }));
+        addToUndoStack({
+          type: 'job',
+          data: deletedJob,
+          deletedAt: new Date().toISOString(),
+        });
 
-    showToast(
-      `Deleted ${job.company}${job.title ? ` - ${job.title}` : ''}`,
-      'success',
-      {
-        label: 'UNDO',
-        onClick: () => {
-          console.log('=== UNDO CLICKED ===');
-          console.log('Restoring job:', deletedJob.id, deletedJob.company);
-          
-          // Restore with original ID, check if it doesn't already exist
-          setData(prev => {
-            console.log('Current jobs count:', prev.jobs.length);
-            console.log('Current job IDs:', prev.jobs.map(j => j.id));
-            
-            // Check if job with this ID already exists (safety check)
-            const exists = prev.jobs.some(j => j.id === deletedJob.id);
-            console.log('Job already exists?', exists);
-            
-            if (exists) {
-              console.warn('Job already exists, skipping restore');
-              return prev;
-            }
-            
-            const newJobs = [...prev.jobs, deletedJob];
-            console.log('After restore, jobs count:', newJobs.length);
-            
-            return {
-              ...prev,
-              jobs: newJobs,
-            };
-          });
-          showToast('Restored!', 'success');
-        },
+        showToast(
+          `Deleted ${job.company}${job.title ? ` - ${job.title}` : ''}`,
+          'success',
+          {
+            label: 'UNDO',
+            onClick: async () => {
+              // Re-create via API
+              try {
+                const response = await fetch('/api/jobs', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(deletedJob),
+                });
+                
+                if (!response.ok) throw new Error('Failed to restore job');
+                
+                const restoredJob = await response.json();
+                setData(prev => ({
+                  ...prev,
+                  jobs: [...prev.jobs, restoredJob],
+                }));
+                showToast('Restored!', 'success');
+              } catch (error) {
+                console.error('Error restoring job:', error);
+                showToast('Failed to restore job', 'error');
+              }
+            },
+          }
+        );
+      } catch (error) {
+        console.error('Error deleting job:', error);
+        showToast('Failed to delete job', 'error');
       }
-    );
+    } else {
+      // localStorage mode (guest)
+      addToUndoStack({
+        type: 'job',
+        data: deletedJob,
+        deletedAt: new Date().toISOString(),
+      });
+
+      setData(prev => ({
+        ...prev,
+        jobs: prev.jobs.filter(job => job.id !== id),
+      }));
+
+      showToast(
+        `Deleted ${job.company}${job.title ? ` - ${job.title}` : ''}`,
+        'success',
+        {
+          label: 'UNDO',
+          onClick: () => {
+            setData(prev => {
+              const exists = prev.jobs.some(j => j.id === deletedJob.id);
+              if (exists) {
+                console.warn('Job already exists, skipping restore');
+                return prev;
+              }
+              
+              return {
+                ...prev,
+                jobs: [...prev.jobs, deletedJob],
+              };
+            });
+            showToast('Restored!', 'success');
+          },
+        }
+      );
+    }
   };
 
   // Companies CRUD
@@ -196,177 +332,471 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   };
 
   // Contacts CRUD
-  const addContact = (contact: Omit<Contact, 'id' | 'createdAt'>) => {
-    const newContact: Contact = {
-      ...contact,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-    };
-    
-    setData(prev => ({
-      ...prev,
-      contacts: [...prev.contacts, newContact],
-    }));
-    
-    return newContact;
+  const addContact = async (contact: Omit<Contact, 'id' | 'createdAt'>) => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch('/api/contacts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(contact),
+        });
+        
+        if (!response.ok) throw new Error('Failed to create contact');
+        
+        const newContact: Contact = await response.json();
+        setData(prev => ({
+          ...prev,
+          contacts: [...prev.contacts, newContact],
+        }));
+        
+        return newContact;
+      } catch (error) {
+        console.error('Error adding contact:', error);
+        showToast('Failed to add contact', 'error');
+        throw error;
+      }
+    } else {
+      const newContact: Contact = {
+        ...contact,
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+      };
+      
+      setData(prev => ({
+        ...prev,
+        contacts: [...prev.contacts, newContact],
+      }));
+      
+      return newContact;
+    }
   };
 
-  const updateContact = (id: string, updates: Partial<Contact>) => {
-    setData(prev => ({
-      ...prev,
-      contacts: prev.contacts.map(contact =>
-        contact.id === id ? { ...contact, ...updates } : contact
-      ),
-    }));
+  const updateContact = async (id: string, updates: Partial<Contact>) => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/contacts/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+        
+        if (!response.ok) throw new Error('Failed to update contact');
+        
+        const updatedContact: Contact = await response.json();
+        setData(prev => ({
+          ...prev,
+          contacts: prev.contacts.map(contact => contact.id === id ? updatedContact : contact),
+        }));
+      } catch (error) {
+        console.error('Error updating contact:', error);
+        showToast('Failed to update contact', 'error');
+      }
+    } else {
+      setData(prev => ({
+        ...prev,
+        contacts: prev.contacts.map(contact =>
+          contact.id === id ? { ...contact, ...updates } : contact
+        ),
+      }));
+    }
   };
 
-  const deleteContact = (id: string) => {
+  const deleteContact = async (id: string) => {
     const contact = data.contacts.find(c => c.id === id);
     if (!contact) return;
 
     const deletedContact = { ...contact };
 
-    addToUndoStack({
-      type: 'contact',
-      data: deletedContact,
-      deletedAt: new Date().toISOString(),
-    });
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/contacts/${id}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) throw new Error('Failed to delete contact');
+        
+        setData(prev => ({
+          ...prev,
+          contacts: prev.contacts.filter(contact => contact.id !== id),
+        }));
 
-    setData(prev => ({
-      ...prev,
-      contacts: prev.contacts.filter(contact => contact.id !== id),
-    }));
+        addToUndoStack({
+          type: 'contact',
+          data: deletedContact,
+          deletedAt: new Date().toISOString(),
+        });
 
-    showToast(
-      `Deleted contact: ${contact.name}`,
-      'success',
-      {
-        label: 'UNDO',
-        onClick: () => {
-          setData(prev => ({
-            ...prev,
-            contacts: [...prev.contacts, deletedContact],
-          }));
-          showToast('Restored!', 'success');
-        },
+        showToast(
+          `Deleted contact: ${contact.name}`,
+          'success',
+          {
+            label: 'UNDO',
+            onClick: async () => {
+              try {
+                const response = await fetch('/api/contacts', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(deletedContact),
+                });
+                
+                if (!response.ok) throw new Error('Failed to restore contact');
+                
+                const restoredContact = await response.json();
+                setData(prev => ({
+                  ...prev,
+                  contacts: [...prev.contacts, restoredContact],
+                }));
+                showToast('Restored!', 'success');
+              } catch (error) {
+                console.error('Error restoring contact:', error);
+                showToast('Failed to restore contact', 'error');
+              }
+            },
+          }
+        );
+      } catch (error) {
+        console.error('Error deleting contact:', error);
+        showToast('Failed to delete contact', 'error');
       }
-    );
+    } else {
+      addToUndoStack({
+        type: 'contact',
+        data: deletedContact,
+        deletedAt: new Date().toISOString(),
+      });
+
+      setData(prev => ({
+        ...prev,
+        contacts: prev.contacts.filter(contact => contact.id !== id),
+      }));
+
+      showToast(
+        `Deleted contact: ${contact.name}`,
+        'success',
+        {
+          label: 'UNDO',
+          onClick: () => {
+            setData(prev => ({
+              ...prev,
+              contacts: [...prev.contacts, deletedContact],
+            }));
+            showToast('Restored!', 'success');
+          },
+        }
+      );
+    }
   };
 
   // Follow-ups CRUD
-  const addFollowUp = (followup: Omit<FollowUp, 'id' | 'createdAt'>) => {
-    const newFollowUp: FollowUp = {
-      ...followup,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-    };
-    
-    setData(prev => ({
-      ...prev,
-      followups: [...prev.followups, newFollowUp],
-    }));
-    
-    return newFollowUp;
+  const addFollowUp = async (followup: Omit<FollowUp, 'id' | 'createdAt'>) => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch('/api/followups', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(followup),
+        });
+        
+        if (!response.ok) throw new Error('Failed to create follow-up');
+        
+        const newFollowUp: FollowUp = await response.json();
+        setData(prev => ({
+          ...prev,
+          followups: [...prev.followups, newFollowUp],
+        }));
+        
+        return newFollowUp;
+      } catch (error) {
+        console.error('Error adding follow-up:', error);
+        showToast('Failed to add follow-up', 'error');
+        throw error;
+      }
+    } else {
+      const newFollowUp: FollowUp = {
+        ...followup,
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+      };
+      
+      setData(prev => ({
+        ...prev,
+        followups: [...prev.followups, newFollowUp],
+      }));
+      
+      return newFollowUp;
+    }
   };
 
-  const updateFollowUp = (id: string, updates: Partial<FollowUp>) => {
-    setData(prev => ({
-      ...prev,
-      followups: prev.followups.map(followup =>
-        followup.id === id ? { ...followup, ...updates } : followup
-      ),
-    }));
+  const updateFollowUp = async (id: string, updates: Partial<FollowUp>) => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/followups/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+        
+        if (!response.ok) throw new Error('Failed to update follow-up');
+        
+        const updatedFollowUp: FollowUp = await response.json();
+        setData(prev => ({
+          ...prev,
+          followups: prev.followups.map(followup => followup.id === id ? updatedFollowUp : followup),
+        }));
+      } catch (error) {
+        console.error('Error updating follow-up:', error);
+        showToast('Failed to update follow-up', 'error');
+      }
+    } else {
+      setData(prev => ({
+        ...prev,
+        followups: prev.followups.map(followup =>
+          followup.id === id ? { ...followup, ...updates } : followup
+        ),
+      }));
+    }
   };
 
-  const deleteFollowUp = (id: string) => {
+  const deleteFollowUp = async (id: string) => {
     const followup = data.followups.find(f => f.id === id);
     if (!followup) return;
 
     const deletedFollowUp = { ...followup };
 
-    addToUndoStack({
-      type: 'followup',
-      data: deletedFollowUp,
-      deletedAt: new Date().toISOString(),
-    });
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/followups/${id}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) throw new Error('Failed to delete follow-up');
+        
+        setData(prev => ({
+          ...prev,
+          followups: prev.followups.filter(followup => followup.id !== id),
+        }));
 
-    setData(prev => ({
-      ...prev,
-      followups: prev.followups.filter(followup => followup.id !== id),
-    }));
+        addToUndoStack({
+          type: 'followup',
+          data: deletedFollowUp,
+          deletedAt: new Date().toISOString(),
+        });
 
-    showToast(
-      `Deleted follow-up`,
-      'success',
-      {
-        label: 'UNDO',
-        onClick: () => {
-          setData(prev => ({
-            ...prev,
-            followups: [...prev.followups, deletedFollowUp],
-          }));
-          showToast('Restored!', 'success');
-        },
+        showToast(
+          `Deleted follow-up`,
+          'success',
+          {
+            label: 'UNDO',
+            onClick: async () => {
+              try {
+                const response = await fetch('/api/followups', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(deletedFollowUp),
+                });
+                
+                if (!response.ok) throw new Error('Failed to restore follow-up');
+                
+                const restoredFollowUp = await response.json();
+                setData(prev => ({
+                  ...prev,
+                  followups: [...prev.followups, restoredFollowUp],
+                }));
+                showToast('Restored!', 'success');
+              } catch (error) {
+                console.error('Error restoring follow-up:', error);
+                showToast('Failed to restore follow-up', 'error');
+              }
+            },
+          }
+        );
+      } catch (error) {
+        console.error('Error deleting follow-up:', error);
+        showToast('Failed to delete follow-up', 'error');
       }
-    );
+    } else {
+      addToUndoStack({
+        type: 'followup',
+        data: deletedFollowUp,
+        deletedAt: new Date().toISOString(),
+      });
+
+      setData(prev => ({
+        ...prev,
+        followups: prev.followups.filter(followup => followup.id !== id),
+      }));
+
+      showToast(
+        `Deleted follow-up`,
+        'success',
+        {
+          label: 'UNDO',
+          onClick: () => {
+            setData(prev => ({
+              ...prev,
+              followups: [...prev.followups, deletedFollowUp],
+            }));
+            showToast('Restored!', 'success');
+          },
+        }
+      );
+    }
   };
 
   // Interviews CRUD
-  const addInterview = (interview: Omit<Interview, 'id' | 'createdAt'>) => {
-    const newInterview: Interview = {
-      ...interview,
-      id: generateId(),
-      createdAt: new Date().toISOString(),
-    };
-    
-    setData(prev => ({
-      ...prev,
-      interviews: [...prev.interviews, newInterview],
-    }));
-    
-    return newInterview;
+  const addInterview = async (interview: Omit<Interview, 'id' | 'createdAt'>) => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch('/api/interviews', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(interview),
+        });
+        
+        if (!response.ok) throw new Error('Failed to create interview');
+        
+        const newInterview: Interview = await response.json();
+        setData(prev => ({
+          ...prev,
+          interviews: [...prev.interviews, newInterview],
+        }));
+        
+        return newInterview;
+      } catch (error) {
+        console.error('Error adding interview:', error);
+        showToast('Failed to add interview', 'error');
+        throw error;
+      }
+    } else {
+      const newInterview: Interview = {
+        ...interview,
+        id: generateId(),
+        createdAt: new Date().toISOString(),
+      };
+      
+      setData(prev => ({
+        ...prev,
+        interviews: [...prev.interviews, newInterview],
+      }));
+      
+      return newInterview;
+    }
   };
 
-  const updateInterview = (id: string, updates: Partial<Interview>) => {
-    setData(prev => ({
-      ...prev,
-      interviews: prev.interviews.map(interview =>
-        interview.id === id ? { ...interview, ...updates } : interview
-      ),
-    }));
+  const updateInterview = async (id: string, updates: Partial<Interview>) => {
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/interviews/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(updates),
+        });
+        
+        if (!response.ok) throw new Error('Failed to update interview');
+        
+        const updatedInterview: Interview = await response.json();
+        setData(prev => ({
+          ...prev,
+          interviews: prev.interviews.map(interview => interview.id === id ? updatedInterview : interview),
+        }));
+      } catch (error) {
+        console.error('Error updating interview:', error);
+        showToast('Failed to update interview', 'error');
+      }
+    } else {
+      setData(prev => ({
+        ...prev,
+        interviews: prev.interviews.map(interview =>
+          interview.id === id ? { ...interview, ...updates } : interview
+        ),
+      }));
+    }
   };
 
-  const deleteInterview = (id: string) => {
+  const deleteInterview = async (id: string) => {
     const interview = data.interviews.find(i => i.id === id);
     if (!interview) return;
 
     const deletedInterview = { ...interview };
 
-    addToUndoStack({
-      type: 'interview',
-      data: deletedInterview,
-      deletedAt: new Date().toISOString(),
-    });
+    if (isAuthenticated) {
+      try {
+        const response = await fetch(`/api/interviews/${id}`, {
+          method: 'DELETE',
+        });
+        
+        if (!response.ok) throw new Error('Failed to delete interview');
+        
+        setData(prev => ({
+          ...prev,
+          interviews: prev.interviews.filter(interview => interview.id !== id),
+        }));
 
-    setData(prev => ({
-      ...prev,
-      interviews: prev.interviews.filter(interview => interview.id !== id),
-    }));
+        addToUndoStack({
+          type: 'interview',
+          data: deletedInterview,
+          deletedAt: new Date().toISOString(),
+        });
 
-    showToast(
-      `Deleted interview`,
-      'success',
-      {
-        label: 'UNDO',
-        onClick: () => {
-          setData(prev => ({
-            ...prev,
-            interviews: [...prev.interviews, deletedInterview],
-          }));
-          showToast('Restored!', 'success');
-        },
+        showToast(
+          `Deleted interview`,
+          'success',
+          {
+            label: 'UNDO',
+            onClick: async () => {
+              try {
+                const response = await fetch('/api/interviews', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(deletedInterview),
+                });
+                
+                if (!response.ok) throw new Error('Failed to restore interview');
+                
+                const restoredInterview = await response.json();
+                setData(prev => ({
+                  ...prev,
+                  interviews: [...prev.interviews, restoredInterview],
+                }));
+                showToast('Restored!', 'success');
+              } catch (error) {
+                console.error('Error restoring interview:', error);
+                showToast('Failed to restore interview', 'error');
+              }
+            },
+          }
+        );
+      } catch (error) {
+        console.error('Error deleting interview:', error);
+        showToast('Failed to delete interview', 'error');
       }
-    );
+    } else {
+      addToUndoStack({
+        type: 'interview',
+        data: deletedInterview,
+        deletedAt: new Date().toISOString(),
+      });
+
+      setData(prev => ({
+        ...prev,
+        interviews: prev.interviews.filter(interview => interview.id !== id),
+      }));
+
+      showToast(
+        `Deleted interview`,
+        'success',
+        {
+          label: 'UNDO',
+          onClick: () => {
+            setData(prev => ({
+              ...prev,
+              interviews: [...prev.interviews, deletedInterview],
+            }));
+            showToast('Restored!', 'success');
+          },
+        }
+      );
+    }
   };
 
   // Bulk operations
@@ -375,50 +805,111 @@ export function AppDataProvider({ children }: { children: ReactNode }) {
   };
 
   // Global undo function
-  const undo = () => {
+  const undo = async () => {
     const item = popFromUndoStack();
     if (!item) {
       showToast('Nothing to undo', 'info');
       return;
     }
 
-    // Restore with original ID, don't create new
-    switch (item.type) {
-      case 'job':
-        setData(prev => ({
-          ...prev,
-          jobs: [...prev.jobs, item.data],
-        }));
-        showToast(`Restored ${item.data.company}`, 'success');
-        break;
-      case 'company':
-        setData(prev => ({
-          ...prev,
-          companies: [...prev.companies, item.data],
-        }));
-        showToast(`Restored ${item.data.name}`, 'success');
-        break;
-      case 'contact':
-        setData(prev => ({
-          ...prev,
-          contacts: [...prev.contacts, item.data],
-        }));
-        showToast(`Restored ${item.data.name}`, 'success');
-        break;
-      case 'followup':
-        setData(prev => ({
-          ...prev,
-          followups: [...prev.followups, item.data],
-        }));
-        showToast('Restored follow-up', 'success');
-        break;
-      case 'interview':
-        setData(prev => ({
-          ...prev,
-          interviews: [...prev.interviews, item.data],
-        }));
-        showToast('Restored interview', 'success');
-        break;
+    if (isAuthenticated) {
+      // API mode - re-create via API
+      try {
+        let endpoint = '';
+        let successMessage = '';
+        
+        switch (item.type) {
+          case 'job':
+            endpoint = '/api/jobs';
+            successMessage = `Restored ${item.data.company}`;
+            break;
+          case 'contact':
+            endpoint = '/api/contacts';
+            successMessage = `Restored ${item.data.name}`;
+            break;
+          case 'followup':
+            endpoint = '/api/followups';
+            successMessage = 'Restored follow-up';
+            break;
+          case 'interview':
+            endpoint = '/api/interviews';
+            successMessage = 'Restored interview';
+            break;
+          default:
+            showToast('Cannot undo this action', 'error');
+            return;
+        }
+
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(item.data),
+        });
+        
+        if (!response.ok) throw new Error('Failed to restore item');
+        
+        const restored = await response.json();
+        
+        // Update local state
+        switch (item.type) {
+          case 'job':
+            setData(prev => ({ ...prev, jobs: [...prev.jobs, restored] }));
+            break;
+          case 'contact':
+            setData(prev => ({ ...prev, contacts: [...prev.contacts, restored] }));
+            break;
+          case 'followup':
+            setData(prev => ({ ...prev, followups: [...prev.followups, restored] }));
+            break;
+          case 'interview':
+            setData(prev => ({ ...prev, interviews: [...prev.interviews, restored] }));
+            break;
+        }
+        
+        showToast(successMessage, 'success');
+      } catch (error) {
+        console.error('Error restoring item:', error);
+        showToast('Failed to restore item', 'error');
+      }
+    } else {
+      // localStorage mode (guest)
+      switch (item.type) {
+        case 'job':
+          setData(prev => ({
+            ...prev,
+            jobs: [...prev.jobs, item.data],
+          }));
+          showToast(`Restored ${item.data.company}`, 'success');
+          break;
+        case 'company':
+          setData(prev => ({
+            ...prev,
+            companies: [...prev.companies, item.data],
+          }));
+          showToast(`Restored ${item.data.name}`, 'success');
+          break;
+        case 'contact':
+          setData(prev => ({
+            ...prev,
+            contacts: [...prev.contacts, item.data],
+          }));
+          showToast(`Restored ${item.data.name}`, 'success');
+          break;
+        case 'followup':
+          setData(prev => ({
+            ...prev,
+            followups: [...prev.followups, item.data],
+          }));
+          showToast('Restored follow-up', 'success');
+          break;
+        case 'interview':
+          setData(prev => ({
+            ...prev,
+            interviews: [...prev.interviews, item.data],
+          }));
+          showToast('Restored interview', 'success');
+          break;
+      }
     }
   };
 

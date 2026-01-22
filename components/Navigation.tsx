@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Moon, Sun, BarChart3, Briefcase, Building2, Users, FileText, Table, Keyboard } from 'lucide-react';
+import { Moon, Sun, BarChart3, Briefcase, Building2, Users, FileText, Table, Keyboard, LogIn, UserPlus, LogOut, User } from 'lucide-react';
 import { useTheme } from './ThemeProvider';
 import { cn } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import { KeyboardShortcutsModal } from './KeyboardShortcutsModal';
 import { useGlobalShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { useAppData } from '@/hooks/useAppData';
+import { useSession, signOut } from 'next-auth/react';
 
 const navItems = [
   { href: '/spreadsheet', label: 'Spreadsheet', icon: BarChart3, featured: true },
@@ -23,7 +24,10 @@ export function Navigation() {
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
   const [showShortcuts, setShowShortcuts] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
   const { undo } = useAppData();
+  const { data: session, status } = useSession();
+  const isAuthenticated = status === 'authenticated';
   
   const shortcuts = useGlobalShortcuts(
     undefined,
@@ -101,6 +105,70 @@ export function Navigation() {
             >
               <Keyboard className="w-5 h-5 text-gray-600 dark:text-gray-400" />
             </button>
+
+            {/* Auth Status */}
+            {status === 'loading' ? (
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-800 animate-pulse" />
+            ) : isAuthenticated ? (
+              <div className="relative">
+                <button
+                  onClick={() => setShowUserMenu(!showUserMenu)}
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                  title={session?.user?.email || 'Account'}
+                >
+                  <User className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300 hidden md:inline">
+                    {session?.user?.name || session?.user?.email?.split('@')[0] || 'Account'}
+                  </span>
+                </button>
+                
+                {showUserMenu && (
+                  <>
+                    <div 
+                      className="fixed inset-0 z-40" 
+                      onClick={() => setShowUserMenu(false)}
+                    />
+                    <div className="absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 py-2">
+                      <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+                        <p className="text-sm font-medium text-gray-900 dark:text-white">
+                          {session?.user?.name || 'Account'}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {session?.user?.email}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          signOut({ callbackUrl: '/' });
+                          setShowUserMenu(false);
+                        }}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sign Out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/login"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                >
+                  <LogIn className="w-4 h-4" />
+                  <span className="hidden md:inline">Login</span>
+                </Link>
+                <Link
+                  href="/signup"
+                  className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium bg-northeastern-red text-white hover:bg-red-700 transition-colors"
+                >
+                  <UserPlus className="w-4 h-4" />
+                  <span className="hidden md:inline">Sign Up</span>
+                </Link>
+              </div>
+            )}
             
             <button
               onClick={toggleTheme}

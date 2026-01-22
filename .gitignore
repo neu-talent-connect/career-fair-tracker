@@ -42,3 +42,5 @@ next-env.d.ts
 *.swo
 *~
 .cursor
+
+/lib/generated/prisma
