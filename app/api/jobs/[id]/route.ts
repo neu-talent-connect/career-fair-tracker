@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // GET /api/jobs/:id - Get a single job
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,9 +15,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const job = await prisma.job.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });
@@ -36,7 +37,7 @@ export async function GET(
 // PUT /api/jobs/:id - Update a job
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -45,14 +46,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     
     // Remove fields that shouldn't be updated
-    const { id, userId, createdAt, ...updateData } = body;
+    const { id: bodyId, userId, createdAt, ...updateData } = body;
 
     const job = await prisma.job.updateMany({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
       data: updateData,
@@ -64,7 +66,7 @@ export async function PUT(
 
     // Fetch the updated job
     const updatedJob = await prisma.job.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json(updatedJob);
@@ -77,7 +79,7 @@ export async function PUT(
 // DELETE /api/jobs/:id - Delete a job
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -86,9 +88,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const job = await prisma.job.deleteMany({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });

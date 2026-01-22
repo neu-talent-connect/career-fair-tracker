@@ -19,7 +19,8 @@ export function MigrateDataModal() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated || status === 'loading') return;
+    if (status === 'loading') return;
+    if (!isAuthenticated) return;
 
     // Check if migration was already dismissed
     const dismissed = localStorage.getItem(MIGRATION_DISMISSED_KEY);

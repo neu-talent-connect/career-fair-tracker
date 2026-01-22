@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // GET /api/contacts/:id - Get a single contact
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,9 +15,10 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const contact = await prisma.contact.findFirst({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });
@@ -36,7 +37,7 @@ export async function GET(
 // PUT /api/contacts/:id - Update a contact
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -45,14 +46,15 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
     
     // Remove fields that shouldn't be updated
-    const { id, userId, createdAt, ...updateData } = body;
+    const { id: bodyId, userId, createdAt, ...updateData } = body;
 
     const contact = await prisma.contact.updateMany({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
       data: updateData,
@@ -64,7 +66,7 @@ export async function PUT(
 
     // Fetch the updated contact
     const updatedContact = await prisma.contact.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json(updatedContact);
@@ -77,7 +79,7 @@ export async function PUT(
 // DELETE /api/contacts/:id - Delete a contact
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -86,9 +88,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const contact = await prisma.contact.deleteMany({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });

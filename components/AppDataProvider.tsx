@@ -21,30 +21,30 @@ const initialData: AppData = {
 interface AppDataContextType {
   data: AppData;
   // Jobs
-  addJob: (job: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => Job;
-  updateJob: (id: string, updates: Partial<Job>) => void;
-  deleteJob: (id: string) => void;
+  addJob: (job: Omit<Job, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Job>;
+  updateJob: (id: string, updates: Partial<Job>) => Promise<void>;
+  deleteJob: (id: string) => Promise<void>;
   // Companies
   addCompany: (company: Omit<Company, 'id' | 'createdAt'>) => Company;
   updateCompany: (id: string, updates: Partial<Company>) => void;
   deleteCompany: (id: string) => void;
   // Contacts
-  addContact: (contact: Omit<Contact, 'id' | 'createdAt'>) => Contact;
-  updateContact: (id: string, updates: Partial<Contact>) => void;
-  deleteContact: (id: string) => void;
+  addContact: (contact: Omit<Contact, 'id' | 'createdAt'>) => Promise<Contact>;
+  updateContact: (id: string, updates: Partial<Contact>) => Promise<void>;
+  deleteContact: (id: string) => Promise<void>;
   // Follow-ups
-  addFollowUp: (followup: Omit<FollowUp, 'id' | 'createdAt'>) => FollowUp;
-  updateFollowUp: (id: string, updates: Partial<FollowUp>) => void;
-  deleteFollowUp: (id: string) => void;
+  addFollowUp: (followup: Omit<FollowUp, 'id' | 'createdAt'>) => Promise<FollowUp>;
+  updateFollowUp: (id: string, updates: Partial<FollowUp>) => Promise<void>;
+  deleteFollowUp: (id: string) => Promise<void>;
   // Interviews
-  addInterview: (interview: Omit<Interview, 'id' | 'createdAt'>) => Interview;
-  updateInterview: (id: string, updates: Partial<Interview>) => void;
-  deleteInterview: (id: string) => void;
+  addInterview: (interview: Omit<Interview, 'id' | 'createdAt'>) => Promise<Interview>;
+  updateInterview: (id: string, updates: Partial<Interview>) => Promise<void>;
+  deleteInterview: (id: string) => Promise<void>;
   // Bulk
   clearAllData: () => void;
   loadSampleData: () => void;
   // Undo
-  undo: () => void;
+  undo: () => Promise<void>;
   canUndo: boolean;
   undoCount: number;
 }

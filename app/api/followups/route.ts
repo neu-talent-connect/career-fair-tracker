@@ -14,7 +14,7 @@ export async function GET() {
 
     const followups = await prisma.followUp.findMany({
       where: { userId: session.user.id },
-      orderBy: { date: 'asc' },
+      orderBy: { dueDate: 'asc' },
     });
 
     return NextResponse.json(followups);

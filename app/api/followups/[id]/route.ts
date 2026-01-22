@@ -6,7 +6,7 @@ import { prisma } from '@/lib/prisma';
 // PUT /api/followups/:id - Update a follow-up
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -15,12 +15,13 @@ export async function PUT(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const body = await request.json();
-    const { id, userId, createdAt, ...updateData } = body;
+    const { id: bodyId, userId, createdAt, ...updateData } = body;
 
     const followup = await prisma.followUp.updateMany({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
       data: updateData,
@@ -31,7 +32,7 @@ export async function PUT(
     }
 
     const updatedFollowup = await prisma.followUp.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     return NextResponse.json(updatedFollowup);
@@ -44,7 +45,7 @@ export async function PUT(
 // DELETE /api/followups/:id - Delete a follow-up
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -53,9 +54,10 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { id } = await params;
     const followup = await prisma.followUp.deleteMany({
       where: {
-        id: params.id,
+        id,
         userId: session.user.id,
       },
     });
