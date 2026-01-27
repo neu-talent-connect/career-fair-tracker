@@ -14,6 +14,7 @@ interface AddJobPanelProps {
   isOpen: boolean;
   onClose: () => void;
   onAdd: (jobData: any) => void;
+  //
 }
 
 export function AddJobPanel({ isOpen, onClose, onAdd }: AddJobPanelProps) {
@@ -223,3 +224,6 @@ export function AddJobPanel({ isOpen, onClose, onAdd }: AddJobPanelProps) {
     </>
   );
 }
+
+// a
+// stats

@@ -44,5 +44,3 @@ next-env.d.ts
 .cursor
 
 /lib/generated/prisma
-
-RESEND_API_KEY="re_8hUvb6Ey_NNsfSuw2U8Rvr66xESDmgynK"
