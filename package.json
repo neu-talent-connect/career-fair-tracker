@@ -8,7 +8,11 @@
     "build": "prisma generate && next build",
     "start": "next start",
     "lint": "next lint",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate",
+    "db:check": "node check-database.mjs",
+    "db:studio": "npx prisma studio",
+    "db:push": "npx prisma db push",
+    "test:backend": "node test-backend.mjs"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
@@ -24,6 +28,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "recharts": "^2.15.1",
+    "resend": "^6.9.1",
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {

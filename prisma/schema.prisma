@@ -18,6 +18,15 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  // Email verification
+  emailVerified       DateTime?
+  verificationToken   String?   @unique
+  verificationExpiry  DateTime?
+  
+  // Password reset
+  resetToken          String?   @unique
+  resetTokenExpiry    DateTime?
+
   // Relations
   jobs      Job[]
   companies Company[]

@@ -1,12 +1,28 @@
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { prisma } from '@/lib/prisma';
+import { sendVerificationEmail, generateToken } from '@/lib/email';
+
+// Email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// Password validation
+function validatePassword(password: string): { valid: boolean; error?: string } {
+  if (password.length < 8) {
+    return { valid: false, error: 'Password must be at least 8 characters long' };
+  }
+  if (password.length > 128) {
+    return { valid: false, error: 'Password must be less than 128 characters' };
+  }
+  return { valid: true };
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
     const { email, password, name } = body;
 
+    // Validate required fields
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
@@ -14,14 +30,42 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if user already exists
+    // Normalize email (lowercase and trim)
+    const normalizedEmail = email.toLowerCase().trim();
+
+    // Validate email format
+    if (!EMAIL_REGEX.test(normalizedEmail)) {
+      return NextResponse.json(
+        { error: 'Please enter a valid email address' },
+        { status: 400 }
+      );
+    }
+
+    // Validate password
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return NextResponse.json(
+        { error: passwordValidation.error },
+        { status: 400 }
+      );
+    }
+
+    // Validate name length if provided
+    if (name && name.trim().length > 100) {
+      return NextResponse.json(
+        { error: 'Name must be less than 100 characters' },
+        { status: 400 }
+      );
+    }
+
+    // Check if user already exists (case-insensitive)
     const existingUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: normalizedEmail },
     });
 
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User already exists' },
+        { error: 'An account with this email already exists' },
         { status: 400 }
       );
     }
@@ -29,14 +73,29 @@ export async function POST(request: Request) {
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Create user
+    // Generate verification token
+    const verificationToken = generateToken();
+    const verificationExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
+
+    // Create user (unverified)
     const user = await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
-        name: name || null,
+        name: name?.trim() || null,
+        verificationToken,
+        verificationExpiry,
+        emailVerified: null, // Not verified yet
       },
     });
+
+    // Send verification email
+    const emailResult = await sendVerificationEmail(normalizedEmail, verificationToken);
+
+    if (!emailResult.success) {
+      console.error('Failed to send verification email:', emailResult.error);
+      // Still return success - user can request resend
+    }
 
     return NextResponse.json(
       {
@@ -45,13 +104,14 @@ export async function POST(request: Request) {
           email: user.email,
           name: user.name,
         },
+        message: 'Account created! Please check your email to verify your account.',
       },
       { status: 201 }
     );
   } catch (error) {
     console.error('[SIGNUP_ERROR]', error);
     return NextResponse.json(
-      { error: 'Something went wrong' },
+      { error: 'An error occurred while creating your account. Please try again.' },
       { status: 500 }
     );
   }

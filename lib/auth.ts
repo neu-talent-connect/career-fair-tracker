@@ -16,9 +16,12 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid credentials');
         }
 
+        // Normalize email (lowercase and trim) for case-insensitive login
+        const normalizedEmail = credentials.email.toLowerCase().trim();
+
         const user = await prisma.user.findUnique({
           where: {
-            email: credentials.email,
+            email: normalizedEmail,
           },
         });
 
@@ -33,6 +36,11 @@ export const authOptions: NextAuthOptions = {
 
         if (!isCorrectPassword) {
           throw new Error('Invalid credentials');
+        }
+
+        // Check if email is verified
+        if (!user.emailVerified) {
+          throw new Error('Please verify your email before logging in');
         }
 
         return {

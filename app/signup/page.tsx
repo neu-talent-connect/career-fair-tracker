@@ -8,17 +8,119 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { signIn } from 'next-auth/react';
 
+// Check if authentication is enabled
+const AUTH_ENABLED = process.env.NEXT_PUBLIC_ALLOW_AUTH === 'true';
+
 export default function SignupPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successEmail, setSuccessEmail] = useState('');
+
+  // If auth is disabled, show maintenance mode
+  if (!AUTH_ENABLED) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950 px-4">
+        <Card className="w-full max-w-md">
+          <div className="p-8">
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-yellow-100 dark:bg-yellow-900 mb-6">
+                <svg
+                  className="h-8 w-8 text-yellow-600 dark:text-yellow-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"
+                  />
+                </svg>
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+                Signups Temporarily Disabled
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 mb-6">
+                We're currently enhancing our authentication and security features to provide you with the best experience.
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-8">
+                New account creation will be available again soon. Thank you for your interest!
+              </p>
+              <div className="space-y-3">
+                <Link href="/">
+                  <Button className="w-full">
+                    Back to Home
+                  </Button>
+                </Link>
+                <Link href="/login">
+                  <Button variant="secondary" className="w-full">
+                    Existing Users: Login
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
+    );
+  }
+
+  const validateForm = () => {
+    // Email validation
+    if (!email.trim()) {
+      setError('Email is required');
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Please enter a valid email address');
+      return false;
+    }
+
+    // Password validation
+    if (!password) {
+      setError('Password is required');
+      return false;
+    }
+
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return false;
+    }
+
+    // Confirm password validation
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return false;
+    }
+
+    // Name validation (if provided)
+    if (name && name.trim().length > 100) {
+      setError('Name must be less than 100 characters');
+      return false;
+    }
+
+    return true;
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+
+    // Client-side validation
+    if (!validateForm()) {
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -28,7 +130,11 @@ export default function SignupPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ name, email, password }),
+        body: JSON.stringify({ 
+          name: name.trim() || undefined, 
+          email: email.trim(), 
+          password 
+        }),
       });
 
       const data = await response.json();
@@ -39,23 +145,12 @@ export default function SignupPage() {
         return;
       }
 
-      // Auto sign in after signup
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError('Account created but login failed. Please try logging in.');
-        setIsLoading(false);
-        return;
-      }
-
-      router.push('/dashboard');
-      router.refresh();
+      // Show success message instead of auto-login
+      setSuccessEmail(email.trim());
+      setShowSuccess(true);
+      setIsLoading(false);
     } catch (error) {
-      setError('Something went wrong');
+      setError('Network error. Please check your connection and try again.');
       setIsLoading(false);
     }
   };
@@ -73,7 +168,43 @@ export default function SignupPage() {
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {showSuccess ? (
+            <div className="text-center space-y-4">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 mb-4">
+                <svg
+                  className="h-6 w-6 text-green-600 dark:text-green-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Check Your Email!
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                We've sent a verification link to <strong>{successEmail}</strong>
+              </p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Click the link in the email to verify your account and log in.
+              </p>
+              <div className="pt-4">
+                <Link
+                  href="/login"
+                  className="text-northeastern-red hover:underline font-medium"
+                >
+                  Go to Login
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -87,6 +218,7 @@ export default function SignupPage() {
               onChange={(e) => setName(e.target.value)}
               placeholder="John Doe"
               disabled={isLoading}
+              maxLength={100}
             />
 
             <Input
@@ -97,17 +229,55 @@ export default function SignupPage() {
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
               disabled={isLoading}
+              autoComplete="email"
             />
 
+            <div>
+              <div className="relative">
+                <Input
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  disabled={isLoading}
+                  minLength={8}
+                  maxLength={128}
+                  autoComplete="new-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-9 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                  ) : (
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Must be at least 8 characters
+              </p>
+            </div>
+
             <Input
-              label="Password"
-              type="password"
+              label="Confirm Password"
+              type={showPassword ? 'text' : 'password'}
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
               disabled={isLoading}
-              minLength={6}
+              autoComplete="new-password"
             />
 
             <Button
@@ -118,7 +288,9 @@ export default function SignupPage() {
               {isLoading ? 'Creating account...' : 'Sign Up'}
             </Button>
           </form>
+          )}
 
+          {!showSuccess && (
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Already have an account?{' '}
@@ -130,6 +302,7 @@ export default function SignupPage() {
               </Link>
             </p>
           </div>
+          )}
         </div>
       </Card>
     </div>
