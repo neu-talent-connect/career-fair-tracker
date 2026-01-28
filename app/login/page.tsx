@@ -18,8 +18,6 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showResendLink, setShowResendLink] = useState(false);
-  const [resendMessage, setResendMessage] = useState('');
 
   // If auth is disabled, show maintenance mode
   if (!AUTH_ENABLED) {
@@ -89,13 +87,7 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        if (result.error.includes('verify your email')) {
-          setError('Please verify your email before logging in');
-          setShowResendLink(true);
-        } else {
-          setError('Invalid email or password');
-          setShowResendLink(false);
-        }
+        setError('Invalid email or password');
         setIsLoading(false);
         return;
       }
@@ -105,30 +97,6 @@ export default function LoginPage() {
     } catch (error) {
       setError('Network error. Please check your connection and try again.');
       setIsLoading(false);
-    }
-  };
-
-  const handleResendVerification = async () => {
-    if (!email.trim()) {
-      setError('Please enter your email address');
-      return;
-    }
-
-    try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim() }),
-      });
-
-      const data = await response.json();
-      setResendMessage(data.message || 'Verification email sent!');
-      setError('');
-      setShowResendLink(false);
-    } catch (error) {
-      setError('Failed to resend verification email');
     }
   };
 
@@ -149,21 +117,6 @@ export default function LoginPage() {
             {error && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
-                {showResendLink && (
-                  <button
-                    type="button"
-                    onClick={handleResendVerification}
-                    className="mt-2 text-sm text-northeastern-red hover:underline font-medium"
-                  >
-                    Resend verification email
-                  </button>
-                )}
-              </div>
-            )}
-
-            {resendMessage && (
-              <div className="p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
-                <p className="text-sm text-green-600 dark:text-green-400">{resendMessage}</p>
               </div>
             )}
 

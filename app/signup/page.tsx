@@ -20,8 +20,6 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showSuccess, setShowSuccess] = useState(false);
-  const [successEmail, setSuccessEmail] = useState('');
 
   // If auth is disabled, show maintenance mode
   if (!AUTH_ENABLED) {
@@ -145,10 +143,21 @@ export default function SignupPage() {
         return;
       }
 
-      // Show success message instead of auto-login
-      setSuccessEmail(email.trim());
-      setShowSuccess(true);
-      setIsLoading(false);
+      // Auto sign in after signup
+      const result = await signIn('credentials', {
+        email: email.trim(),
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setError('Account created but login failed. Please try logging in.');
+        setIsLoading(false);
+        return;
+      }
+
+      router.push('/');
+      router.refresh();
     } catch (error) {
       setError('Network error. Please check your connection and try again.');
       setIsLoading(false);
@@ -168,43 +177,7 @@ export default function SignupPage() {
             </p>
           </div>
 
-          {showSuccess ? (
-            <div className="text-center space-y-4">
-              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 dark:bg-green-900 mb-4">
-                <svg
-                  className="h-6 w-6 text-green-600 dark:text-green-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
-                Check Your Email!
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400">
-                We've sent a verification link to <strong>{successEmail}</strong>
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                Click the link in the email to verify your account and log in.
-              </p>
-              <div className="pt-4">
-                <Link
-                  href="/login"
-                  className="text-northeastern-red hover:underline font-medium"
-                >
-                  Go to Login
-                </Link>
-              </div>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
                 <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
@@ -288,9 +261,7 @@ export default function SignupPage() {
               {isLoading ? 'Creating account...' : 'Sign Up'}
             </Button>
           </form>
-          )}
 
-          {!showSuccess && (
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Already have an account?{' '}
@@ -302,7 +273,6 @@ export default function SignupPage() {
               </Link>
             </p>
           </div>
-          )}
         </div>
       </Card>
     </div>
